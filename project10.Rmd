@@ -1,0 +1,31 @@
+---
+title: "st542_project10"
+author: "Jingjing Li"
+date: "2023-06-15"
+output: html_document
+---
+```{r}
+var_defa <- readxl::read_excel ("../data/Variable_def.xlsx",sheet="Definitions")
+var_defb <- readxl::read_excel("../data/Variable_def.xlsx",sheet="VariableParkingLot_not_in_data ")
+var_def2a <- readxl::read_excel ("../data/Variable_def2.xlsx",sheet="Definitions")
+var_def2b <- readxl::read_excel("../data/Variable_def2.xlsx",sheet="VariableParkingLot_not_in_data ")
+rain<- readxl::read_excel("../data/Rainfall_Variation_2.xls")
+survey_2019_pond_v2 <- readxl::read_excel("../data/survey_2019_ponds_v2.xlsx")
+ariq_drain<- readxl::read_excel("../data/ARIQ_drainage_areas.xlsx")
+rolim_drain<- readxl::read_excel("../data/Rolim_drainage_areas.xlsx")
+opo_drain <-readxl::read_excel("../data/OPO_drainage_areas.xlsx")
+head(var_defa)
+head(var_defb)
+head(var_def2a)
+head(var_def2b)
+head(rain)
+head(ariq_drain)
+head(rolim_drain)
+head(opo_drain)
+```
+```{r}
+library(haven)
+survey<- read_dta("../data/survey_panel96_19_noID_surveyyears.dta") 
+dim(survey)
+```
+
