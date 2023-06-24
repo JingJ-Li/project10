@@ -97,3 +97,18 @@ dim(survey_gis)
 
 ```
 NOTE: There are duplicates in this combined data - waiting for Mariana to say what to do with them.
+
+Start EDA with some plots
+```{r}
+g <- ggplot(data = survey_gis, aes(x = vechval))
+g + geom_histogram() + labs(title = "Histogram of Vehicle Value")
+
+g <- ggplot(data = survey_gis, aes(x = drainage_area_km))
+g + geom_histogram() + labs(title = "Histogram of Drainage Area")
+
+g <- ggplot(data = survey_gis, aes(x = family))
+g + geom_histogram() + labs(title = "Histogram of Family Size")
+
+g <- ggplot(data = survey_gis, aes(x = lotsize_gis))
+g + geom_histogram() + labs(title = "Histogram of Lot Size")
+```
