@@ -104,11 +104,17 @@ NOTE 2: Plots are currently using the data as-is while waiting for a response on
 Start EDA with some individual variable histograms.
 
 ```{r}
-g <- ggplot(data = survey_gis, aes(x = vechval))
-g + geom_histogram() + labs(title = "Histogram of Vehicle Value")
-
 g <- ggplot(data = survey_gis, aes(x = drainage_area_km))
 g + geom_histogram() + labs(title = "Histogram of Drainage Area")
+
+g <- ggplot(data = survey_gis, aes(x = rainfall))
+g + geom_histogram() + labs(title = "Boxplot of Rainfall")
+
+g <- ggplot(data = survey_gis, aes(x = SPI_year))
+g + geom_histogram() + labs(title = "Histogram of Average Yearly SPI")
+
+g <- ggplot(data = survey_gis, aes(x = vechval))
+g + geom_histogram() + labs(title = "Histogram of Vehicle Value")
 
 g <- ggplot(data = survey_gis, aes(x = family))
 g + geom_histogram() + labs(title = "Histogram of Family Size")
@@ -116,27 +122,14 @@ g + geom_histogram() + labs(title = "Histogram of Family Size")
 g <- ggplot(data = survey_gis, aes(x = lotsize_gis))
 g + geom_histogram() + labs(title = "Histogram of Lot Size")
 
-g <- ggplot(data = survey_gis, aes(x = SPI_year))
-g + geom_histogram() + labs(title = "Histogram of Average Yearly SPI")
-
 ```
 Next, we can look at some box plots
 ```{r}
-g <- ggplot(data = survey_gis, aes(x = vechval))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value")
-
 g <- ggplot(data = survey_gis, aes(x = drainage_area_km))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area")
 
-g <- ggplot(data = survey_gis, aes(x = family))
-g + geom_boxplot() + labs(title = "Boxplot of Family Size")
-
-g <- ggplot(data = survey_gis, aes(x = lotsize_gis))
-g + geom_boxplot() + labs(title = "Boxplot of Lot Size")
-
-g <- ggplot(data = survey_gis, aes(x = eduhh_most))
-g + geom_boxplot() + 
-  labs(title = "Boxplot of Level of Education of Most Educated Household Member")
+g <- ggplot(data = survey_gis, aes(x = rainfall))
+g + geom_boxplot() + labs(title = "Boxplot of Rainfall")
 
 g <- ggplot(data = survey_gis, aes(x = SPI_year))
 g + geom_boxplot() + labs(title = "Boxplot of Average Yearly SPI")
@@ -147,6 +140,18 @@ g + geom_boxplot() + labs(title = "Boxplot of Average in Peak Dry Season")
 g <- ggplot(data = survey_gis, aes(x = SPI_wet))
 g + geom_boxplot() + labs(title = "Boxplot of Average in Peak Wet Season")
 
+g <- ggplot(data = survey_gis, aes(x = vechval))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value")
+
+g <- ggplot(data = survey_gis, aes(x = family))
+g + geom_boxplot() + labs(title = "Boxplot of Family Size")
+
+g <- ggplot(data = survey_gis, aes(x = lotsize_gis))
+g + geom_boxplot() + labs(title = "Boxplot of Lot Size")
+
+g <- ggplot(data = survey_gis, aes(x = eduhh_most))
+g + geom_boxplot() + 
+  labs(title = "Boxplot of Level of Education of Most Educated Household Member")
 
 ```
 
@@ -163,10 +168,23 @@ ggplot(survey_gis, aes(x=well)) + geom_bar() +
 
 ```
 
+Let's look at boxplots of drainage area and vehicle value (wealth) grouped by cattle.
+
+```{r}
+g <- ggplot(data = survey_gis, aes(x = drainage_area_km, y = as.factor(havecattle)))
+g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle") +
+  ylab("Cattle")
+
+g <- ggplot(data = survey_gis, aes(x = vechval, y = as.factor(havecattle)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+  ylab("Cattle")
+
+```
+
 Next lets look at pair plots
 
 ```{r}
-pairs_subset <- survey_gis %>% select(c(vechval, family, lotsize_gis, drainage_area_km, SPI_year))
+pairs_subset <- survey_gis %>% select(c(vechval, family, lotsize_gis, drainage_area_km, SPI_year, havecattle, rainfall))
 pairs(pairs_subset)
 
 ```
