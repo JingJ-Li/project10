@@ -99,6 +99,118 @@ dim(survey_gis)
 ```
 NOTE: There are duplicates in this combined data - waiting for Mariana to say what to do with them.
 
+
+### Exploring the merged data
+
+```{r}
+survey_merged <- read_dta("data/merged_survey_panel96_19_noID.dta") 
+dim(survey_merged)
+survey_merged_clean <- survey_merged %>% 
+  filter(!is.na(lotid_qualtrics))
+# Removing duplicates for modelling - forgot to ask Mariana which should be kept, so just keeping first for now
+# Also open to just dropping all duplicated lotids - there's only 42
+survey_final <- survey_merged_clean %>% distinct(lotid_qualtrics, .keep_all = TRUE)
+```
+
+Now to check for nulls in columns:
+```{r}
+missing_vals <- survey_final %>% summarise_all(~sum(is.na(.)))
+t(missing_vals)
+```
+There seem to be a lot of columns missing 1026 values, which puts the numbers back to what we saw in the original data. Clearly there is a lot of missing data across all areas, so I don't think we should drop all rows missing data. 
+
+## Feature Engineering
+
+### Creating One Drainage Area Column 
+I will create one drainage area column, and then will drop all rows that don't have drainage area. Not sure if this is the best approach but this data is so messy!
+
+```{r}
+# There are two lots that have areas in each region - will drop them
+duplicate_regions <- survey_final %>% filter(!is.na(OPO_area_km) & !is.na(RO_area_km)) %>% select(lotid_qualtrics)
+survey_final <- survey_final %>% filter(!(lotid_qualtrics %in% duplicate_regions$lotid_qualtrics))
+survey_final <- survey_final %>% mutate(drainage_area_km = ifelse(!is.na(Drainage_AreaKM_Ari), Drainage_AreaKM_Ari, ifelse(!is.na(OPO_area_km), OPO_area_km, ifelse(!is.na(RO_area_km), RO_area_km, NA))),
+                                        region = ifelse(studycode == 1, "Ariquemes",
+                                                        ifelse(studycode == 2, "Ouro Preto do Oeste", ifelse(studycode == 3, "Rolim de Moura", NA)))) %>%
+  select(-c(Drainage_AreaKM_Ari, RO_area_km, OPO_area_km))
+```
+
+
+### Creating Individual Adaptation Method Booleans
+First, I need to create the indivdual adaptation method booleans i.e. `cattle_management` if the farmer employed any cattle management strategy. Then I can combine these to make a general adaptation method boolean.
+
+```{r}
+survey_final <- survey_final %>% mutate(cattle_management = case_when(feed_cattle == 1  | soil_analysis == 1 | cattleinputs_breed == 1 | semiconfine == 1 | sellcattle_droughtexp == 1 ~ 1, .default = 0),
+                                        pasture_management = case_when(irrigation_pas == 1 | pasture_productivity == 1 | fert_pasture ==1 | pest_pasture == 1 | fallow == 1 ~ 1, .default = 0),
+                                        forest_conservation = case_when(forest_rec == 1 | keep_veg == 1 ~ 1, .default = 0),
+                                        water_management = case_when(waterstructure == 1 | well_have == 1 | dam_have == 1 | reservoir_have == 1 ~ 1, .default = 0)) # Chose to use case when to account for NA - need to ask Mariana how these should be treated
+
+# Looking at distributions
+g <- ggplot(data = survey_final, aes(x = cattle_management))
+g + geom_bar() + labs(title = "Bar Plot of Cattle Management")
+
+g <- ggplot(data = survey_final, aes(x = pasture_management))
+g + geom_bar() + labs(title = "Bar Plot of Pasture Management")
+
+g <- ggplot(data = survey_final, aes(x = forest_conservation))
+g + geom_bar() + labs(title = "Bar Plot of Forest Conservation")
+
+g <- ggplot(data = survey_final, aes(x = water_management))
+g + geom_bar() + labs(title = "Bar Plot of Water Management")
+
+```
+
+### Creating General Adaptation Method Boolean
+Now that the indivdual adaptation measures have been created, I will create a general adaptation method boolean
+
+```{r}
+survey_final <- survey_final %>% mutate(any_adaptation = ifelse(cattle_management == 1 | pasture_management == 1 | forest_conservation == 1 | water_management == 1,1,0))
+
+# Looking at the distribution
+g <- ggplot(data = survey_final, aes(x = any_adaptation))
+g + geom_bar() + labs(title = "Bar Plot of Any Adaptation")
+```
+Not a fully even data set, but better balanced than I predicted it would be. I don't
+think rebalancing is needed for the final analysis.
+
+Now let's see if we remove farmers who don't have GIS information
+```{r}
+survey_final_gis <- survey_final %>% filter(!is.na(drainage_area_km))
+
+# Looking at the distribution
+g <- ggplot(data = survey_final_gis, aes(x = any_adaptation))
+g + geom_bar() + labs(title = "Bar Plot of Any Adaptation")
+```
+Now it is very imbalanced. Not as horrible as it could be - but could affect the outputs of the model. Is SPI still missing for these?
+
+```{r}
+missing_vals_gis <- survey_final_gis %>% summarise_all(~sum(is.na(.)))
+t(missing_vals_gis)
+```
+Now only for 140 of them, who are also missing region. Let's drop those and see:
+```{r}
+survey_final_gis_clean <- survey_final_gis %>% filter(!is.na(SPImin_year))
+
+# Looking at the distribution
+g <- ggplot(data = survey_final_gis_clean, aes(x = any_adaptation))
+g + geom_bar() + labs(title = "Bar Plot of Any Adaptation")
+
+# Looking at the distribution for the individual variables
+g <- ggplot(data = survey_final_gis_clean, aes(x = cattle_management))
+g + geom_bar() + labs(title = "Bar Plot of Cattle Management")
+
+g <- ggplot(data = survey_final_gis_clean, aes(x = pasture_management))
+g + geom_bar() + labs(title = "Bar Plot of Pasture Management")
+
+g <- ggplot(data = survey_final_gis_clean, aes(x = forest_conservation))
+g + geom_bar() + labs(title = "Bar Plot of Forest Conservation")
+
+g <- ggplot(data = survey_final_gis_clean, aes(x = water_management))
+g + geom_bar() + labs(title = "Bar Plot of Water Management")
+```
+And everyone did some sort of adaptation method. Great - this means if we drop all missing water data, we can't look at a relationship between general adaptation and results. If we include rows that are missing SPI and just use drainage area, there is still a model that can be run.
+
+## Exploratory Data Analysis
+
 NOTE 2: Plots are currently using the data as-is while waiting for a response on the duplicate values
 
 Start EDA with some individual variable histograms.
@@ -125,7 +237,7 @@ g + geom_histogram() + labs(title = "Histogram of Lot Size")
 ```
 Next, we can look at some box plots
 ```{r}
-g <- ggplot(data = survey_gis, aes(x = drainage_area_km))
+g <- ggplot(data = survey_final_gis, aes(x = drainage_area_km))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area")
 
 g <- ggplot(data = survey_gis, aes(x = rainfall))
@@ -184,9 +296,40 @@ g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") 
 Next lets look at pair plots
 
 ```{r}
-pairs_subset <- survey_gis %>% select(c(vechval, family, lotsize_gis, drainage_area_km, SPI_year, havecattle, rainfall))
+pairs_subset <- survey_final_gis %>% select(c(vechval, family, drainage_area_km, SPImax_year, havecattle, rainfall, lotprice))
 pairs(pairs_subset)
 
+```
+
+# Modelling
+
+## Multiple Logistic Regression Model
+First to create a few different MLRs to see what the relationship is between
+adaptation methods and water availability.
+
+### Model 1
+In this model, I will select the largest amount of variables. The dependent variable will be the general adaptation variable. The independent variables will be:
+  - Drainage area
+  - Lot size (can't find in data - ask Mariana)
+  - Soil type (100% missing - so maybe not)
+  - Vehicle value
+  - SPI - using the maximum in the year
+  - Risk
+  - Lot value
+
+(This model did not converge)
+  
+  
+### Model 2
+Trying with only drainage area to see if there's a relationship since previous model did not converge
+```{r}
+fit_2 <- glm(any_adaptation ~ drainage_area_km, family = binomial,data = survey_final_gis)
+summary(fit_2)
+```
+The drainage area is not a statistically significant parameter in this case. However, there are outliers in the data that might be affecting this. Let's investigate
+
+```{r}
+plot(fit_1, which = 1)
 ```
 
 
