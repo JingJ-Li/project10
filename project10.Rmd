@@ -8,6 +8,8 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(ggplot2)
+library(haven)
+#install.packages("tidyverse")
 ```
 
 ```{r}
@@ -416,4 +418,100 @@ The drainage area is not a statistically significant parameter in this case. How
 plot(fit_1, which = 1)
 ```
 
+Now look at individual adaptation variables
+```{r}
+fit_cattle <- glm(cattle_management ~ drainage_area_km, family = binomial,data = survey_final_gis)
+summary(fit_cattle)
 
+fit_cattle_log = glm(cattle_management ~ log(drainage_area_km), family = binomial,data = survey_final_gis)
+summary(fit_cattle_log)
+```
+Saw significance when using log(drainage area)
+
+Next lets look at pasture management
+```{r}
+fit_pasture <- glm(pasture_management ~ drainage_area_km, family = binomial,data = survey_final_gis)
+summary(fit_pasture)
+
+fit_pasture_log <- glm(pasture_management ~ log(drainage_area_km), family = binomial,data = survey_final_gis)
+summary(fit_pasture_log)
+```
+Similar results, but with a super low p for log(drainage area)
+
+Next lets look at forest conservation
+```{r}
+fit_forest <- glm(forest_conservation ~ drainage_area_km, family = binomial,data = survey_final_gis)
+summary(fit_forest)
+
+fit_forest_log <- glm(forest_conservation ~ log(drainage_area_km), family = binomial,data = survey_final_gis)
+summary(fit_forest_log)
+```
+
+Log(drainage area) is highly significant again
+
+Let's now look at water management
+```{r}
+fit_water <- glm(water_management ~ drainage_area_km, family = binomial,data = survey_final_gis)
+summary(fit_forest)
+
+fit_water_log <- glm(water_management ~ log(drainage_area_km), family = binomial,data = survey_final_gis)
+summary(fit_forest_log)
+```
+
+Similar results again. Log(drainage area) is significant for each of the adaptation categories.
+
+What happens if I filter by "have cattle" and look at cattle_management
+
+```{r}
+survey_havecattle <-survey_final_gis %>% filter(havecattle ==1)
+fit_cattle_have <- glm(cattle_management ~ drainage_area_km, family = binomial,data = survey_havecattle)
+summary(fit_cattle_have)
+
+fit_cattle_have_log <- glm(cattle_management ~ log(drainage_area_km), family = binomial,data = survey_havecattle)
+summary(fit_cattle_have_log)
+```
+
+Interesting, if we only include those that have cattle, the significance of the log(drainage area) disappears.
+
+Let's see if anything similar happens when filtered by havecattle for any of the other adaptations
+```{r}
+fit_pasture_have_log <- glm(pasture_management ~ log(drainage_area_km), family = binomial,data = survey_havecattle)
+summary(fit_pasture_have_log)
+
+fit_forest_have_log <- glm(forest_conservation ~ log(drainage_area_km), family = binomial,data = survey_havecattle)
+summary(fit_forest_have_log)
+
+fit_water_have_log <- glm(water_management ~ log(drainage_area_km), family = binomial,data = survey_havecattle)
+summary(fit_forest_have_log)
+```
+
+We still have a significant log(drainage area) for all of the other adaptation categories.
+
+I'm curious about how many farms made multiple adaptations
+```{r}
+table(survey_final_gis$cattle_management, survey_final_gis$pasture_management)
+
+table(survey_final_gis$cattle_management, survey_final_gis$forest_conservation)
+
+table(survey_final_gis$cattle_management, survey_final_gis$water_management)
+
+table(survey_final_gis$pasture_management, survey_final_gis$forest_conservation)
+
+table(survey_final_gis$pasture_management, survey_final_gis$water_management)
+
+table(survey_final_gis$forest_conservation, survey_final_gis$water_management)
+```
+
+It looks like the majority of farmers who adapted did more than one thing.
+
+
+Let's also look at deforestation as a linear model
+```{r}
+fit_deforest <- lm(cleared_area ~ drainage_area_km, data = survey_final_gis)
+summary(fit_deforest)
+
+fit_deforest_log <- lm(cleared_area ~ log(drainage_area_km), data = survey_final_gis)
+summary(fit_deforest_log)
+```
+
+We see significance for both the drainage area and the log(drainage area). Both had positive coefficients, which is confusing if my understanding of drainage_area and cleared_area are both correct.
