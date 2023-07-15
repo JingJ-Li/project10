@@ -33,7 +33,7 @@ head(opo_drain)
 ```
 ```{r}
 library(haven)
-survey<- read_dta("data/survey_panel96_19_noID_surveyyears.dta") 
+survey<- read_dta("../data/survey_panel96_19_noID_surveyyears.dta") 
 dim(survey)
 ```
 
@@ -105,7 +105,7 @@ NOTE: There are duplicates in this combined data - waiting for Mariana to say wh
 ### Exploring the merged data
 
 ```{r}
-survey_merged <- read_dta("data/merged_survey_panel96_19_noID.dta") 
+survey_merged <- read_dta("../data/merged_survey_panel96_19_noID.dta") 
 dim(survey_merged)
 survey_merged_clean <- survey_merged %>% 
   filter(!is.na(lotid_qualtrics))
@@ -305,14 +305,6 @@ pairs(pairs_subset)
 
 # Statisitcal analysis
 
-Next, we transform rainfall date from wide form to long form.
-```{r}
-survey_rainfall_season <- survey_final_gis_clean %>% gather(key=rain_season_key, value=rainfall_season, c("rainfall_dry","rainfall_wet"))
-survey_SPI_season <- survey_final_gis_clean %>% gather(key=SPI_season_key, value=SPI_season, c("SPI_dry","SPI_wet"))
-
-```
-
-
 ## t test for milkincome
 We would like to see if there is any difference of milkincome between dry and wet season. The null hypothesis is mean value of milkincome is the same for dry and wet season. H0: $\mu_{mlkinc,dry}=\mu_{mlkinc,wet)}$ vs Ha: $\mu_{mlkinc,dry} \ne \mu_{mlkinc,wet)}$  
 
@@ -320,13 +312,6 @@ We would like to see if there is any difference of milkincome between dry and we
 t.test(survey_final_gis_clean$milkincwet,survey_final_gis_clean$milkincdry,na.rm=TRUE,var.equal = FALSE)
 ```
 As p is much less than 0.05, we are confident the mean value of milkincome of wetseason is significant higher than dry season.  
-
-## t test for income from beef
-```{r}
-incbeef_dry <-  survey_rainfall_season[survey_rainfall_season$rain_season_key=="rainfall_dry",]$incbeef
-incbeef_wet <-  survey_rainfall_season[survey_rainfall_season$rain_season_key=="rainfall_wet",]$incbeef
-t.test(incbeef_wet,incbeef_dry,na.rm=TRUE,var.equal = FALSE )
-```
 
 
 # t-test for SPI 
@@ -378,13 +363,18 @@ TukeyHSD(aov_vechval, conf.level=.95)
 ```
 The family wealth is significant different in three regions. The wealth in region 3 is the largest.  
 
-# Multivariate analysis
-We are going to construct vectors containing relevant variables.
+divide rainfall
 ```{r}
-income <- c ("incbeef","inchf","inccalf","incpigs","incchicken","incsheepgoat","inchorses","incmules","incdonkey","incotherlive","incbolsaescola","incpension","incbolsafam")
-inc_region <- subset(survey_final_gis_clean,select="incbeef")
-inc_region <- manova(inc_region~survey_final_gis_clean$studycode, na.rm=TRUE)
+rainfall_group<- cut(survey_final_gis_clean$rainfall, c(0,1950,2300), label=c("low","high"))
+survey_final_gis_clean2 <- mutate(survey_final_gis_clean, rainfall_group)
+aov_incbeef2 <- aov(incbeef ~ rainfall_group, data=survey_final_gis_clean2)
+summary(aov_incbeef2)
+TukeyHSD(aov_incbeef2, conf.level=.95)
 ```
+
+
+
+# Multivariate analysis
 
 
 # Modelling
@@ -417,6 +407,16 @@ The drainage area is not a statistically significant parameter in this case. How
 ```{r}
 plot(fit_1, which = 1)
 ```
+### model 3
+
+```{r}
+ survey_final_gis2<- drop_na(survey_final_gis,SPI_year)
+survey_final_gis2$rainfall2 <- scale(survey_final_gis2$rainfall,center=TRUE,scale=T)
+survey_final_gis2$drainage_area_km2 <-  scale(survey_final_gis2$drainage_area_km,center=TRUE,scale=T)
+fit_3 <- glm(any_adaptation ~ log (drainage_area_km) + log(rainfall), family = binomial,data = survey_final_gis2)
+summary(fit_3)
+```
+
 
 Now look at individual adaptation variables
 ```{r}
