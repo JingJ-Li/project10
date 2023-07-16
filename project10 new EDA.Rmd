@@ -14,7 +14,7 @@ library(psych)
 ### Exploring the merged data
 
 ```{r}
-survey_merged <- read_dta("data/merged_survey_panel96_19_noID.dta") 
+survey_merged <- read_dta("../data/merged_survey_panel96_19_noID.dta") 
 dim(survey_merged)
 survey_merged_clean <- survey_merged %>% 
   filter(!is.na(lotid_qualtrics))
@@ -47,7 +47,7 @@ survey_final <- survey_final %>% mutate(drainage_area_km = ifelse(!is.na(Drainag
 
 
 ### Creating Individual Adaptation Method Booleans
-First, I need to create the indivdual adaptation method booleans i.e. `cattle_management` if the farmer employed any cattle management strategy. Then I can combine these to make a general adaptation method boolean.
+First, I need to create the individual adaptation method booleans i.e. `cattle_management` if the farmer employed any cattle management strategy. Then I can combine these to make a general adaptation method boolean.
 
 ```{r}
 survey_final <- survey_final %>% mutate(cattle_management = case_when(feed_cattle == 1  | soil_analysis == 1 | cattleinputs_breed == 1 | semiconfine == 1 | sellcattle_droughtexp == 1 ~ 1, .default = 0),
@@ -255,54 +255,39 @@ It looks like the majority of farmers who adapted did more than one thing.
 
 # Statisitcal analysis
 
-Next, we transform rainfall date from wide form to long form.
-```{r}
-survey_rainfall_season <- survey_final_gis_clean %>% gather(key=rain_season_key, value=rainfall_season, c("rainfall_dry","rainfall_wet"))
-survey_SPI_season <- survey_final_gis_clean %>% gather(key=SPI_season_key, value=SPI_season, c("SPI_dry","SPI_wet"))
-
-```
-
-
 ## t test for milkincome
 We would like to see if there is any difference of milkincome between dry and wet season. The null hypothesis is mean value of milkincome is the same for dry and wet season. H0: $\mu_{mlkinc,dry}=\mu_{mlkinc,wet)}$ vs Ha: $\mu_{mlkinc,dry} \ne \mu_{mlkinc,wet)}$  
 
 ```{r}
-t.test(survey_final_gis_clean$milkincwet,survey_final_gis_clean$milkincdry,na.rm=TRUE,var.equal = FALSE)
+t.test(survey_final_gis_clean$milkincwet,survey_final_gis$milkincdry,na.rm=TRUE,var.equal = FALSE)
 ```
 As p is much less than 0.05, we are confident the mean value of milkincome of wetseason is significant higher than dry season.  
-
-## t test for income from beef
-```{r}
-incbeef_dry <-  survey_rainfall_season[survey_rainfall_season$rain_season_key=="rainfall_dry",]$incbeef
-incbeef_wet <-  survey_rainfall_season[survey_rainfall_season$rain_season_key=="rainfall_wet",]$incbeef
-t.test(incbeef_wet,incbeef_dry,na.rm=TRUE,var.equal = FALSE )
-```
-
 
 # t-test for SPI 
 We would like to see if there is any difference in SPI between dry and wet season. The null hypothesis is mean value of SPI is the same for dry and wet season. H0: $\mu_{SPI,dry}=\mu_{SPI,wet)}$ vs Ha: $\mu_{SPI,dry} \ne \mu_{SPI,wet)}$ 
 ```{r}
-t.test(survey_final_gis_clean$SPI_wet6,survey_final_gis_clean$SPI_dry6,na.rm=TRUE,var.equal = FALSE)
-t.test(survey_final_gis_clean$SPI_wet,survey_final_gis_clean$SPI_dry,na.rm=TRUE,var.equal = FALSE)
+t.test(survey_final_gis_clean$SPI_wet6,survey_final_gis$SPI_dry6,na.rm=TRUE,var.equal = FALSE)
+t.test(survey_final_gis_clean$SPI_wet,survey_final_gis$SPI_dry,na.rm=TRUE,var.equal = FALSE)
 ```
 Average SPI and average monthly SPI in the peak of wet  season is significantly higher than those of dry season.   
 
 ## Anova analysis
 We hypothesize drainage area of three regions may be different. We propose null hypothesis is drainage area means of three regions are the same. The alternativae hypothesis is drainage area means of three regions are different.  
+
 ### effect of region on drainage_area_km
 ```{r}
-survey_final_gis_clean$studycode<- factor(survey_final_gis_clean$studycode)
-aov_drainage <- aov(drainage_area_km ~ studycode, data=survey_final_gis_clean)
+survey_final_gis$studycode<- factor(survey_final_gis$studycode)
+aov_drainage <- aov(drainage_area_km ~ studycode, data=survey_final_gis)
 
 summary(aov_drainage)
 TukeyHSD(aov_drainage, conf.level=.95)
 ```
-As p-value of F test is extremely small, we are confident that the drainage means of three regions are different. We further compared drainage means of three regions and found region3 (Rolim) has the highest drainage area, OPO has the smallest.  
+As p-value of F test is close 0.05,  the drainage area means of three regions are somehow different. We further compared drainage means of three regions and found region3 (Rolim) has the highest drainage area, OPO has the smallest.  
 
 ### effect of region on income from beef
 We then wants to see if there is difference in income from beef at different regions.
 ```{r}
-aov_incbeef <- aov(incbeef ~ studycode, data=survey_final_gis_clean)
+aov_incbeef <- aov(incbeef ~ studycode, data=survey_final_gis)
 summary(aov_incbeef)
 TukeyHSD(aov_incbeef, conf.level=.95)
 ```
@@ -312,7 +297,7 @@ As p value is larger than 0.05, we can not reject our hypothesis that the means 
 ### effect of region on rainfall 
 
 ```{r}
-aov_rainfall <- aov(rainfall~ studycode, data=survey_final_gis_clean)
+aov_rainfall <- aov(rainfall~ studycode, data=survey_final_gis)
 summary(aov_rainfall)
 TukeyHSD(aov_rainfall, conf.level=.95)
 ```
@@ -321,21 +306,12 @@ As p-value for F test of AONVA is very small, rainfall in three regions is not t
 
 ### effect of region on wealth 
 ```{r}
-aov_vechval <- aov(vechval~ studycode, data=survey_final_gis_clean)
+aov_vechval <- aov(vechval~ studycode, data=survey_final_gis)
 summary(aov_vechval)
 TukeyHSD(aov_vechval, conf.level=.95)
 
 ```
 The family wealth is significant different in three regions. The wealth in region 3 is the largest.  
-
-# Multivariate analysis
-We are going to construct vectors containing relevant variables.
-```{r}
-income <- c ("incbeef","inchf","inccalf","incpigs","incchicken","incsheepgoat","inchorses","incmules","incdonkey","incotherlive","incbolsaescola","incpension","incbolsafam")
-inc_region <- subset(survey_final_gis_clean,select="incbeef")
-inc_region <- manova(inc_region~survey_final_gis_clean$studycode, na.rm=TRUE)
-```
-
 
 # Modelling
 
@@ -456,5 +432,25 @@ fit_with_SPI <- glm(any_adaptation ~ log(drainage_area_km), family = binomial, d
 summary(fit_with_SPI)
 
 head(survey_final_gis)
+```
+### modeling for the wealth
+```{r}
+# remove data of vechval with "NA"
+survey_final_gis_wealth <- survey_final_gis %>% filter(!is.na(survey_final_gis$vechval))
+fit_wealth_water <- glm(water_management~  vechval , family = binomial, data = survey_final_gis_wealth )
+fit_wealth_cattle  <- glm(cattle_management~  vechval , family = binomial, data = survey_final_gis_wealth )
+fit_wealth_pasture  <- glm(pasture_management~  vechval , family = binomial, data = survey_final_gis_wealth )
+fit_wealth_forest <- glm(forest_conservation~  vechval , family = binomial, data = survey_final_gis_wealth )
+fit_wealth_any_adaptation <- glm(any_adaptation~  vechval , family = binomial, data = survey_final_gis_wealth )
+summary(fit_wealth_water)
+summary(fit_wealth_cattle)
+summary(fit_wealth_pasture)
+summary(fit_wealth_forest)
+summary(fit_wealth_any_adaptation )
+
+```
+```{r}
+fit_lot_water<- glm(water_management ~ lotprice, family = binomial, data = survey_final_gis )
+summary(fit_lot_water  )
 ```
 
