@@ -401,12 +401,61 @@ Trying with only drainage area to see if there's a relationship since previous m
 fit_2 <- glm(any_adaptation ~ drainage_area_km, family = binomial,data = survey_final_gis)
 summary(fit_2)
 ```
-The drainage area is not a statistically significant parameter in this case. However, there are outliers in the data that might be affecting this. Let's investigate
+The drainage area is not a statistically significant parameter in this case. However, there are outliers in the data that might be affecting this. Let's investigate.
 
 ```{r}
-plot(fit_1, which = 1)
+plot(fit_2, which = 4)
 ```
-### model 3
+
+Fitting the model without observation 206
+```{r}
+survey_final_gis_no <- survey_final_gis[-c(206),]
+fit_3 <- glm(any_adaptation ~ drainage_area_km, family = binomial,data = survey_final_gis_no)
+summary(fit_3)
+```
+```{r}
+plot(fit_3, which = 4)
+```
+Now to check Log Reg assumptions
+```{r}
+probabilities <- predict(fit_3, type = "response")
+# Select only numeric predictors
+mydata <- survey_final_gis_no %>%
+  dplyr::select_if(is.numeric) %>%
+  select(drainage_area_km)
+predictors <- colnames(mydata)
+# Bind the logit and tidying the data for plot
+mydata <- mydata %>%
+  mutate(logit = log(probabilities/(1-probabilities))) %>%
+  gather(key = "predictors", value = "predictor.value", -logit)
+```
+
+```{r}
+ggplot(mydata, aes(logit, predictor.value))+
+  geom_point(size = 0.5, alpha = 0.5) +
+  geom_smooth(method = "loess") + 
+  theme_bw() + 
+  facet_wrap(~predictors, scales = "free_y")
+```
+
+
+### Model 3 - Transforming Drainage Area
+Let's look at the distribution of drainage area to see if we should transform it
+
+```{r}
+g <- ggplot(data = survey_final_gis_no, aes(x = log(drainage_area_km)))
+g + geom_histogram() + labs(title = "Histogram of log(Drainage Area)")
+```
+
+Now to create the model:
+
+```{r}
+fit_transform <- glm(any_adaptation ~ log(drainage_area_km), family = binomial,data = survey_final_gis)
+summary(fit_transform)
+```
+
+
+### model 4
 
 ```{r}
  survey_final_gis2<- drop_na(survey_final_gis,SPI_year)
