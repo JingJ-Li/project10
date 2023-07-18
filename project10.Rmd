@@ -454,8 +454,20 @@ fit_transform <- glm(any_adaptation ~ log(drainage_area_km), family = binomial,d
 summary(fit_transform)
 ```
 
+### Model 4
+For this model, we will take Dr. Harris's suggestion of an indicator variable for
+the large drainage area lots (I believe is what he meant)
 
-### model 4
+First going to see the fit with outliers chopped off
+
+```{r}
+survey_final_gis_filtered <- survey_final_gis %>% filter(drainage_area_km < 500)
+fit_4 <- glm(any_adaptation ~ drainage_area_km, data = survey_final_gis_filtered, family = binomial)
+summary(fit_4)
+```
+
+
+### model 5
 
 ```{r}
  survey_final_gis2<- drop_na(survey_final_gis,SPI_year)
