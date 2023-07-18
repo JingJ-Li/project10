@@ -603,8 +603,9 @@ fit_wealth_drain_forest <- glm(forest_conservation~  vechval + drainage_area_km,
 summary(fit_wealth_drain_water)
 summary(fit_wealth_drain_cattle)
 summary(fit_wealth_drain_pasture)
-summary(fit_wealth_drain_forest)
+summary(fit_wealth_drain_forest) 
 #summary(fit_wealth_drain_any_adaptation )
+
 ```
 
 With the drainage area outliers removed, drainage area is significant for forest conservation but none of the others.
