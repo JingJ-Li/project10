@@ -984,7 +984,7 @@ summary(fit_wealth_ldrain_water)
 summary(fit_wealth_ldrain_cattle)
 summary(fit_wealth_ldrain_pasture)
 summary(fit_wealth_ldrain_forest)
-#summary(fit_wealth_drain_any_adaptation )
+#summary(fit_wealth_drain_any_adaptation ) 
 ```
 
 The model for any adaptation did not converge, but all of the others did. Vehicle value was still significant for all of the adaptation measures. Log(drainage area) was not significant for water or cattle management when vehicle value is included, but it is for pasture management and forest conservation. For forest conservation, drainage area has a much smaller p value than vehicle value.
@@ -1005,6 +1005,7 @@ summary(fit_wealth_drain_forest)
 
 ```
 
+With the drainage area outliers removed, drainage area is significant for forest conservation but none of the others.
 
 
 >>>>>>> 5943cb226095ba196c7ef7c2a597565fdd326e4d
