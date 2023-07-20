@@ -389,7 +389,26 @@ Now to create the model:
 ```{r}
 fit_transform <- glm(any_adaptation ~ log(drainage_area_km), family = binomial,data = survey_final_gis)
 summary(fit_transform)
+<<<<<<< HEAD
 
+=======
+```
+
+### Model 4
+For this model, we will take Dr. Harris's suggestion of an indicator variable for
+the large drainage area lots (I believe is what he meant)
+
+First going to see the fit with outliers chopped off
+
+```{r}
+survey_final_gis_filtered <- survey_final_gis %>% filter(drainage_area_km < 500)
+fit_4 <- glm(any_adaptation ~ drainage_area_km, data = survey_final_gis_filtered, family = binomial)
+summary(fit_4)
+```
+
+
+### Indivdual Adaptation Variables
+>>>>>>> 325ff5089c83501369aed9c3b40bfd7b1b5bfa1f
 Now look at individual adaptation variables
 ```{r}
 fit_cattle <- glm(cattle_management ~ drainage_area_km, family = binomial,data = survey_final_gis)

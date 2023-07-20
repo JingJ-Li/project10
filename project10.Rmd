@@ -364,9 +364,9 @@ The family wealth is significant different in three regions. The wealth in regio
 
 divide rainfall
 ```{r}
-rainfall_group<- cut(survey_final_gis_clean$rainfall, c(0,1950,2300), label=c("low","high"))
-survey_final_gis_clean2 <- mutate(survey_final_gis_clean, rainfall_group)
-aov_incbeef2 <- aov(incbeef ~ rainfall_group, data=survey_final_gis_clean2)
+rainfall_group<- cut(survey_final_gis$rainfall, c(0,1950,2300), label=c("low","high"))
+survey_final_gis2 <- mutate(survey_final_gis, rainfall_group)
+aov_incbeef2 <- aov(incbeef ~ rainfall_group, data=survey_final_gis2)
 summary(aov_incbeef2)
 TukeyHSD(aov_incbeef2, conf.level=.95)
 ```
@@ -454,8 +454,20 @@ fit_transform <- glm(any_adaptation ~ log(drainage_area_km), family = binomial,d
 summary(fit_transform)
 ```
 
+### Model 4
+For this model, we will take Dr. Harris's suggestion of an indicator variable for
+the large drainage area lots (I believe is what he meant)
 
-### model 4
+First going to see the fit with outliers chopped off
+
+```{r}
+survey_final_gis_filtered <- survey_final_gis %>% filter(drainage_area_km < 500)
+fit_4 <- glm(any_adaptation ~ drainage_area_km, data = survey_final_gis_filtered, family = binomial)
+summary(fit_4)
+```
+
+
+### model 5
 
 ```{r}
  survey_final_gis2<- drop_na(survey_final_gis,SPI_year)
@@ -563,3 +575,52 @@ summary(fit_deforest_log)
 ```
 
 We see significance for both the drainage area and the log(drainage area). Both had positive coefficients, which is confusing if my understanding of drainage_area and cleared_area are both correct.
+
+Look at models with vehicle value and drainage area. Drainage area was not significant in any models, but log(drainage area) is for some.
+```{r}
+survey_final_gis_wealth <- survey_final_gis %>% filter(!is.na(survey_final_gis$vechval))
+fit_wealth_ldrain_water <- glm(water_management~  vechval + log(drainage_area_km), family = binomial, data = survey_final_gis_wealth )
+fit_wealth_ldrain_cattle  <- glm(cattle_management~  vechval + log(drainage_area_km) , family = binomial, data = survey_final_gis_wealth )
+fit_wealth_ldrain_pasture  <- glm(pasture_management~  vechval + log(drainage_area_km), family = binomial, data = survey_final_gis_wealth )
+fit_wealth_ldrain_forest <- glm(forest_conservation~  vechval + log(drainage_area_km), family = binomial, data = survey_final_gis_wealth )
+#fit_wealth_drainn_any_adaptation <- glm(any_adaptation~  vechval + log(drainage_area_km), family = binomial, data = survey_final_gis_wealth )
+summary(fit_wealth_ldrain_water)
+summary(fit_wealth_ldrain_cattle)
+summary(fit_wealth_ldrain_pasture)
+summary(fit_wealth_ldrain_forest)
+#summary(fit_wealth_drain_any_adaptation )
+```
+The model for any adaptation did not converge, but all of the others did. Vehicle value was still significant for all of the adaptation measures. Log(drainage area) was not significant for water or cattle management when vehicle value is included, but it is for pasture management and forest conservation. For forest conservation, drainage area has a much smaller p value than vehicle value.
+
+Try using draianage area with the tail chopped off instead of log transform
+```{r}
+survey_final_gis_wealth_filtered <- survey_final_gis_wealth %>% filter(drainage_area_km < 500)
+fit_wealth_drain_water <- glm(water_management~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
+fit_wealth_drain_cattle  <- glm(cattle_management~  vechval + drainage_area_km , family = binomial, data = survey_final_gis_wealth_filtered )
+fit_wealth_drain_pasture  <- glm(pasture_management~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
+fit_wealth_drain_forest <- glm(forest_conservation~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
+#fit_wealth_drainn_any_adaptation <- glm(any_adaptation~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
+summary(fit_wealth_drain_water)
+summary(fit_wealth_drain_cattle)
+summary(fit_wealth_drain_pasture)
+summary(fit_wealth_drain_forest)
+#summary(fit_wealth_drain_any_adaptation )
+```
+
+With the drainage area outliers removed, drainage area is significant for forest conservation but none of the others.  
+```{r}
+rainfall_group<- cut(survey_final_gis_wealth_filtered$rainfall , c(0,1950,2300), label=c("low","high"))
+rainfall_group <-factor(rainfall_group)
+survey_final_gis_wealth_filtered$studycode <-factor(survey_final_gis_wealth_filtered$studycode)
+fit_wealth_drain_water <- glm(water_management~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
+fit_wealth_drain_cattle  <- glm(cattle_management~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
+fit_wealth_drain_pasture  <- glm(pasture_management~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
+fit_wealth_drain_forest <- glm(forest_conservation~  vechval + log(drainage_area_km) + log(rainfall_year) + studycode, family = binomial, data = survey_final_gis_wealth_filtered )
+#fit_wealth_drainn_any_adaptation <- glm(any_adaptation~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
+summary(fit_wealth_drain_water)
+summary(fit_wealth_drain_cattle)
+summary(fit_wealth_drain_pasture)
+summary(fit_wealth_drain_forest)
+#summary(fit_wealth_drain_any_adaptation )
+```
+
