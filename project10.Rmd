@@ -284,11 +284,11 @@ ggplot(survey_gis, aes(x=well)) + geom_bar() +
 Let's look at boxplots of drainage area and vehicle value (wealth) grouped by cattle.
 
 ```{r}
-g <- ggplot(data = survey_gis, aes(x = drainage_area_km, y = as.factor(havecattle)))
+g <- ggplot(data = survey_final_gis, aes(x = drainage_area_km, y = as.factor(havecattle)))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle") +
   ylab("Cattle")
 
-g <- ggplot(data = survey_gis, aes(x = vechval, y = as.factor(havecattle)))
+g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(havecattle)))
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
   ylab("Cattle")
 
@@ -301,6 +301,95 @@ pairs_subset <- survey_final_gis %>% select(c(vechval, family, drainage_area_km,
 pairs(pairs_subset)
 
 ```
+## boplot supplement
+
+### Effect of region on drainage area, rainfall and vechval  
+```{r}
+g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(region)))
+g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by region") +
+  ylab("region")
+g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(region)))
+g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by region") +
+  ylab("region")
+g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(region)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by region") +
+  ylab("region")
+```
+### Effect of cattle_management on drainage area, rainfall and vechval  
+```{r}
+g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(cattle_management)))
+g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle_management") +
+  ylab("cattle_management")
+
+g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(cattle_management)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+  ylab("cattle_management")
+
+g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(cattle_management)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+  ylab("cattle_management")
+
+```
+### Effect of pasture_management  on drainage area, rainfall and vechval  
+```{r}
+g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(pasture_management)))
+g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle_management") +
+  ylab("pasture_management")
+
+g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(pasture_management)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+  ylab("pasture_management")
+
+g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(pasture_management)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+  ylab("pasture_management")
+```
+
+### Effect of forest_conservation on drainage area, rainfall and vechval  
+```{r}
+g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(forest_conservation)))
+g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle_management") +
+  ylab("forest_conservation")
+
+g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(forest_conservation)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+  ylab("forest_conservation")
+
+g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(forest_conservation)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+  ylab("forest_conservation")
+```
+
+### Effect of water_management on drainage area, rainfall and vechval  
+```{r}
+g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(water_management)))
+g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle_management") +
+  ylab("pasture_management")
+
+g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(water_management)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+  ylab("pasture_management")
+
+g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(water_management)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+  ylab("pasture_management")
+```
+### Effect of any_adaptation on drainage area, rainfall and vechval 
+
+```{r}
+g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(any_adaptation)))
+g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle_management") +
+  ylab("any_adaptation")
+
+g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(any_adaptation)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by any_adaptation") +
+  ylab("any_adaptation")
+
+g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(any_adaptation)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by any_adaptation") +
+  ylab("any_adaptation")
+```
+
 
 # Statisitcal analysis
 
@@ -325,18 +414,18 @@ Average SPI and average monthly SPI in the peak of wet  season is significantly 
 We hypothesize drainage area of three regions may be different. We propose null hypothesis is drainage area means of three regions are the same. The alternativae hypothesis is drainage area means of three regions are different.  
 ### effect of region on drainage_area_km
 ```{r}
-survey_final_gis_clean$studycode<- factor(survey_final_gis_clean$studycode)
-aov_drainage <- aov(drainage_area_km ~ studycode, data=survey_final_gis_clean)
+survey_final_gis$studycode<- factor(survey_final_gis$region)
+aov_drainage <- aov(drainage_area_km ~ region, data=survey_final_gis)
 
 summary(aov_drainage)
 TukeyHSD(aov_drainage, conf.level=.95)
 ```
-As p-value of F test is extremely small, we are confident that the drainage means of three regions are different. We further compared drainage means of three regions and found region3 (Rolim) has the highest drainage area, OPO has the smallest.  
+As p-value of F test is extremely small, we are confident that the drainage means of three regions are different. We further compared drainage means of three regions and found region "Rolim de Moura" has the highest drainage area, OPO has the smallest.  
 
 ### effect of region on income from beef
 We then wants to see if there is difference in income from beef at different regions.
 ```{r}
-aov_incbeef <- aov(incbeef ~ studycode, data=survey_final_gis_clean)
+aov_incbeef <- aov(incbeef ~ region, data=survey_final_gis )
 summary(aov_incbeef)
 TukeyHSD(aov_incbeef, conf.level=.95)
 ```
@@ -346,11 +435,11 @@ As p value is larger than 0.05, we can not reject our hypothesis that the means 
 ### effect of region on rainfall 
 
 ```{r}
-aov_rainfall <- aov(rainfall~ studycode, data=survey_final_gis_clean)
+aov_rainfall <- aov(rainfall~ region, data=survey_final_gis )
 summary(aov_rainfall)
 TukeyHSD(aov_rainfall, conf.level=.95)
 ```
-As p-value for F test of AONVA is very small, rainfall in three regions is not the same. It can be seen the rainfall in region 3 is less than that in the other two.  
+As p-value for F test of AONVA is very small, rainfall in three regions is not the same. It can be seen the rainfall in region "3"Rolim de Moura is less than that in the other two.  
 
 
 ### effect of region on wealth 
