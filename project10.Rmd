@@ -301,7 +301,7 @@ pairs_subset <- survey_final_gis %>% select(c(vechval, family, drainage_area_km,
 pairs(pairs_subset)
 
 ```
-## boplot supplement
+## boxplot supplement
 
 ### Effect of region on drainage area, rainfall and vechval  
 ```{r}
@@ -333,57 +333,54 @@ g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") 
 ### Effect of pasture_management  on drainage area, rainfall and vechval  
 ```{r}
 g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(pasture_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle_management") +
+g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by pasture_management") +
   ylab("pasture_management")
 
 g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(pasture_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by pasture_management") +
   ylab("pasture_management")
 
 g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(pasture_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by pasture_management") +
   ylab("pasture_management")
 ```
 
 ### Effect of forest_conservation on drainage area, rainfall and vechval  
 ```{r}
 g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(forest_conservation)))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle_management") +
+g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by forest_conservation") +
   ylab("forest_conservation")
 
 g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(forest_conservation)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by forest_conservation") +
   ylab("forest_conservation")
 
 g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(forest_conservation)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by forest_conservation") +
   ylab("forest_conservation")
 ```
 
 ### Effect of water_management on drainage area, rainfall and vechval  
 ```{r}
 g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(water_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle_management") +
-  ylab("pasture_management")
+g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by water_management") +
+  ylab("water_management")
 
 g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(water_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
-  ylab("pasture_management")
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by water_management") +
+  ylab("water_management")
 
 g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(water_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
-  ylab("pasture_management")
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by water_management") +
+  ylab("water_management")
 ```
 ### Effect of any_adaptation on drainage area, rainfall and vechval 
 
 ```{r}
-g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(any_adaptation)))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle_management") +
+g <- ggplot(data = survey_final_gis_clean, aes(x = log(drainage_area_km), y = as.factor(any_adaptation)))
+g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by any_adaptation") +
   ylab("any_adaptation")
 
-g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(any_adaptation)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by any_adaptation") +
-  ylab("any_adaptation")
 
 g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(any_adaptation)))
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by any_adaptation") +
@@ -392,6 +389,71 @@ g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by any_adapt
 
 
 # Statisitcal analysis
+## t test for drainage area
+
+```{r}
+quartiles_1 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km, probs=c(.25, .75), na.rm = TRUE)
+IQR_1 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km,na.rm = TRUE)
+ 
+Lower_1 <- quartiles_1[1] - 1.5*IQR_1
+Upper_1 <- quartiles_1[2] + 1.5*IQR_1
+ 
+data_no_outlier_1<- subset(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km, survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km> Lower_1 & survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km< Upper_1)
+
+quartiles_0 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km, probs=c(.25, .75), na.rm = TRUE)
+IQR_0 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km,na.rm = TRUE)
+ 
+Lower_0 <- quartiles_0[1] - 1.5*IQR_0
+Upper_0 <- quartiles_0[2] + 1.5*IQR_0
+ 
+data_no_outlier_0 <- subset(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km, survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km> Lower_0 & survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km< Upper_0)
+
+t.test(data_no_outlier_1 , data_no_outlier_0 ,na.rm=TRUE,var.equal = FALSE)
+```
+
+
+
+## t test for rainfall 
+```{r}
+quartiles_1 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==1,]$rainfall, probs=c(.25, .75), na.rm = TRUE)
+IQR_1 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==1,]$rainfall,na.rm = TRUE)
+ 
+Lower_1 <- quartiles_1[1] - 1.5*IQR_1
+Upper_1 <- quartiles_1[2] + 1.5*IQR_1
+ 
+data_no_outlier_1<- subset(survey_final_gis[survey_final_gis$any_adaptation==1,]$rainfall, survey_final_gis[survey_final_gis$any_adaptation==1,]$rainfall> Lower_1 & survey_final_gis[survey_final_gis$any_adaptation==1,]$rainfall< Upper_1)
+
+quartiles_0 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==0,]$rainfall, probs=c(.25, .75), na.rm = TRUE)
+IQR_0 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==0,]$rainfall,na.rm = TRUE)
+ 
+Lower_0 <- quartiles_0[1] - 1.5*IQR_0
+Upper_0 <- quartiles_0[2] + 1.5*IQR_0
+ 
+data_no_outlier_0 <- subset(survey_final_gis[survey_final_gis$any_adaptation==0,]$rainfall, survey_final_gis[survey_final_gis$any_adaptation==0,]$rainfall> Lower_0 & survey_final_gis[survey_final_gis$any_adaptation==0,]$rainfall< Upper_0)
+ 
+t.test(data_no_outlier_1 , data_no_outlier_0 ,na.rm=TRUE,var.equal = FALSE)
+```
+## t test for vechval 
+```{r}
+quartiles_1 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==1,]$vechval, probs=c(.25, .75), na.rm = FALSE)
+IQR_1 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==1,]$vechval,na.rm = FALSE)
+ 
+Lower_1 <- quartiles_1[1] - 1.5*IQR_1
+Upper_1 <- quartiles_1[2] + 1.5*IQR_1
+ 
+data_no_outlier_1<- subset(survey_final_gis[survey_final_gis$any_adaptation==1,]$vechval, survey_final_gis[survey_final_gis$any_adaptation==1,]$vechval> Lower_1 & survey_final_gis[survey_final_gis$any_adaptation==1,]$vechval< Upper_1)
+
+quartiles_0 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==0,]$vechval, probs=c(.25, .75), na.rm = FALSE)
+IQR_0 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==0,]$vechval,na.rm = FALSE)
+ 
+Lower_0 <- quartiles_0[1] - 1.5*IQR_0
+Upper_0 <- quartiles_0[2] + 1.5*IQR_0
+ 
+data_no_outlier_0 <- subset(survey_final_gis[survey_final_gis$any_adaptation==0,]$vechval, survey_final_gis[survey_final_gis$any_adaptation==0,]$vechval> Lower_0 & survey_final_gis[survey_final_gis$any_adaptation==0,]$vechval< Upper_0)
+ 
+t.test(data_no_outlier_1 , data_no_outlier_0 ,na.rm=TRUE,var.equal = FALSE)
+```
+
 
 ## t test for milkincome
 We would like to see if there is any difference of milkincome between dry and wet season. The null hypothesis is mean value of milkincome is the same for dry and wet season. H0: $\mu_{mlkinc,dry}=\mu_{mlkinc,wet)}$ vs Ha: $\mu_{mlkinc,dry} \ne \mu_{mlkinc,wet)}$  
