@@ -9,97 +9,11 @@ output: html_document
 library(tidyverse)
 library(ggplot2)
 library(haven)
-```
-
-```{r}
-# var_defa <- readxl::read_excel ("data/Variable_def.xlsx",sheet="Definitions")
-# var_defb <- readxl::read_excel("data/Variable_def.xlsx",sheet="VariableParkingLot_not_in_data ")
-# var_def2a <- readxl::read_excel ("data/Variable_def2.xlsx",sheet="Definitions")
-# var_def2b <- readxl::read_excel("data/Variable_def2.xlsx",sheet="VariableParkingLot_not_in_data ")
-rain<- readxl::read_excel("data/Rainfall_Variation_2.xls")
-survey_2019_pond_v2 <- readxl::read_excel("data/survey_2019_ponds_v2.xlsx")
-ariq_drain<- readxl::read_excel("data/ARIQ_drainage_areas.xlsx")
-rolim_drain<- readxl::read_excel("data/Rolim_drainage_areas.xlsx")
-opo_drain <-readxl::read_excel("data/OPO_drainage_areas.xlsx")
-# head(var_defa)
-# head(var_defb)
-# head(var_def2a)
-# head(var_def2b)
-head(rain)
-head(ariq_drain)
-head(rolim_drain)
-head(opo_drain)
-```
-```{r}
+library(tidyverse)
+library(ggplot2)
 library(haven)
-survey<- read_dta("../data/survey_panel96_19_noID_surveyyears.dta") 
-dim(survey)
+library(psych)
 ```
-
-# Data Combination
-
-First to explore the data. Seems to be already limited to only 2019
-
-```{r}
-cols <- colnames(survey)
-survey_clean <- survey %>% filter(startdate != "") #Removing blank survey start dates
-min(survey_clean$startdate)
-min(survey_clean$enddate)
-dim(survey_clean) # When removing the blank survey dates - only 1342 remain. Is this right?
-```
-
-Now to join to the drainage data. I'm excluding rainfall data since there are quite
-a few missing rows, and to Jingjing's point - there could be multicollinearity.
-
-```{r}
-head(survey_clean$lotid_qualtrics)
-head(rain$lotidtot)
-head(survey_2019_pond_v2$lotidtot)
-head(ariq_drain$Qual_lotid) # I think this has an extra 0
-head(rolim_drain$lotid) # I think this has an extra 0
-head(opo_drain$lotidtot)
-
-# Code if you want rainfall data
-#survey_rain <- merge(survey, rain, by.x = "lotid_qualtrics", by.y = "lotidtot")
-#dim(survey_rain)
-# Joining to drainage data from the Ariq region
-ariq_clean <- ariq_drain %>% select(c("Qual_lotid", "Drainage_AreaKM", "LargArea")) %>%
-  rename("drainage_area_km" = "Drainage_AreaKM", "Size" = "LargArea")
-survey_ariq_drain <- merge(survey_clean, ariq_clean, by.x = "lotid_qualtrics", by.y = "Qual_lotid")
-dim(survey_ariq_drain)
-dim(ariq_drain) # some duplication - come back to investigate
-
-# Joining to drainage data from Rolim region
-rolim_drain_clean <- rolim_drain %>% mutate(lotid_qualtrics = as.double(ifelse(nchar(lotid) == 7 & substr(lotid, start = 7, stop = 7) == 0, substr(lotid, start = 0, stop = 6), ifelse(nchar(lotid) == 6 & substr(lotid, start = 6, stop = 6) == 0, substr(lotid, start = 0, stop = 5), lotid)))) %>%
-  select(c("lotid_qualtrics", "RO_area_km", "Size")) %>%
-  rename("drainage_area_km" = "RO_area_km")
-survey_rolim_drain <- merge(survey_clean, rolim_drain_clean, by.x = "lotid_qualtrics", by.y = "lotid_qualtrics")
-dim(survey_rolim_drain)
-
-# Joining to drainage data from Opo region
-opo_drain_clean <- opo_drain %>% rename("drainage_area_km" = "OPO_area_km")
-survey_opo_drain <- merge(survey_clean, opo_drain_clean, by.x = "lotid_qualtrics", by.y = "lotidtot")
-dim(survey_opo_drain)
-
-# Joining into one dataset
-survey_clean_drainage <- rbind(survey_opo_drain, rbind(survey_ariq_drain, survey_rolim_drain))
-dim(survey_clean_drainage)
-
-# Checking for duplicates - asked Mariana about these and waiting for a response
-survey_duplicates <- survey_clean_drainage %>% 
-  group_by(lotid_qualtrics) %>% 
-  filter(n()>1)
-
-# Joining pond data - doesn't have full rows
-pond_clean <- survey_2019_pond_v2 %>% mutate(lotid_qualtrics = as.double(ifelse(nchar(lotidtot) == 7 & substr(lotidtot, start = 7, stop = 7) == 0, substr(lotidtot, start = 0, stop = 6), ifelse(nchar(lotidtot) == 6 & substr(lotidtot, start = 6, stop = 6) == 0, substr(lotidtot, start = 0, stop = 5), lotidtot)))) %>%
-  select(c("lotid_qualtrics", fishtanks,reservoir, reservoir_have, lotsize_GIS_ponds))
-survey_gis <- merge(survey_clean_drainage, pond_clean, by.x = "lotid_qualtrics", by.y = "lotid_qualtrics", all.x = TRUE)
-dim(survey_gis)
-
-
-```
-NOTE: There are duplicates in this combined data - waiting for Mariana to say what to do with them.
-
 
 ### Exploring the merged data
 
@@ -238,7 +152,7 @@ g + geom_histogram() + labs(title = "Histogram of Lot Size")
 ```
 Next, we can look at some box plots
 ```{r}
-g <- ggplot(data = survey_final_gis, aes(x = drainage_area_km))
+g <- ggplot(data = survey_gis, aes(x = drainage_area_km))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area")
 
 g <- ggplot(data = survey_gis, aes(x = rainfall))
@@ -274,7 +188,7 @@ Let's look at barplots for a few categorical variables
 ```{r}
 ggplot(survey_gis, aes(x=irrigation)) + geom_bar() + 
   labs(title = "Barplot of Number of Irrigation Systems")
-
+drai
 ggplot(survey_gis, aes(x=well)) + geom_bar() + 
   labs(title = "Barplot of Number of Wells")
 
@@ -301,6 +215,10 @@ pairs_subset <- survey_final_gis %>% select(c(vechval, family, drainage_area_km,
 pairs(pairs_subset)
 
 ```
+```{r}
+describe(survey_final_gis[c('drainage_area_km', 'rainfall', 'rainfall_wet', 'rainfall_dry', 'SPI_wet', 'SPI_dry', 'incbeef', 'milkincome', 'vechval', 'lotprice', 'family')], fast=TRUE)
+```
+
 ## boxplot supplement
 
 ### Effect of region on drainage area, rainfall and vechval  
@@ -386,6 +304,19 @@ g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(any_adaptati
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by any_adaptation") +
   ylab("any_adaptation")
 ```
+Boxplot of 
+```{r}
+milkcinc <- data.frame(survey_final_gis_clean$milkincwet,survey_final_gis_clean$milkincdry)
+boxplot(milkcinc)
+```
+```{r}
+SPI <- data.frame(survey_final_gis_clean$SPI_wet,survey_final_gis_clean$SPI_dry)
+boxplot(SPI)
+```
+```{r}
+rainfall <- data.frame(survey_final_gis_clean$rainfall_wet,survey_final_gis_clean$rainfall_dry)
+boxplot(rainfall)
+```
 
 
 # Statisitcal analysis
@@ -455,7 +386,7 @@ t.test(data_no_outlier_1 , data_no_outlier_0 ,na.rm=TRUE,var.equal = FALSE)
 ```
 
 
-## t test for milkincome
+## t test for milkincome at different seasons  
 We would like to see if there is any difference of milkincome between dry and wet season. The null hypothesis is mean value of milkincome is the same for dry and wet season. H0: $\mu_{mlkinc,dry}=\mu_{mlkinc,wet)}$ vs Ha: $\mu_{mlkinc,dry} \ne \mu_{mlkinc,wet)}$  
 
 ```{r}
@@ -463,11 +394,14 @@ t.test(survey_final_gis_clean$milkincwet,survey_final_gis_clean$milkincdry,na.rm
 ```
 As p is much less than 0.05, we are confident the mean value of milkincome of wetseason is significant higher than dry season.  
 
+## t-test for rainfall at different seasons
+```{r}
+t.test(survey_final_gis_clean$rainfall_wet,survey_final_gis_clean$rainfall_dry,na.rm=TRUE,var.equal = FALSE)
+```
 
-# t-test for SPI 
+## t-test for SPI at different seasons
 We would like to see if there is any difference in SPI between dry and wet season. The null hypothesis is mean value of SPI is the same for dry and wet season. H0: $\mu_{SPI,dry}=\mu_{SPI,wet)}$ vs Ha: $\mu_{SPI,dry} \ne \mu_{SPI,wet)}$ 
 ```{r}
-t.test(survey_final_gis_clean$SPI_wet6,survey_final_gis_clean$SPI_dry6,na.rm=TRUE,var.equal = FALSE)
 t.test(survey_final_gis_clean$SPI_wet,survey_final_gis_clean$SPI_dry,na.rm=TRUE,var.equal = FALSE)
 ```
 Average SPI and average monthly SPI in the peak of wet  season is significantly higher than those of dry season.   
