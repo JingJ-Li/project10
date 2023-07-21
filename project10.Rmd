@@ -216,7 +216,7 @@ pairs(pairs_subset)
 
 ```
 ```{r}
-describe(survey_final_gis[c('drainage_area_km', 'rainfall', 'rainfall_wet', 'rainfall_dry', 'SPI_wet', 'SPI_dry', 'incbeef', 'milkincome', 'vechval', 'lotprice', 'family')], fast=TRUE)
+describe(survey_gis[c('drainage_area_km', 'rainfall', 'rainfall_wet', 'rainfall_dry', 'SPI_wet', 'SPI_dry', 'incbeef',  'vechval', 'milkincwet','milkincdry','lotprice', 'family')], fast=TRUE) # "I don't know why "milkincome is missed here.
 ```
 
 ## boxplot supplement
@@ -408,6 +408,7 @@ Average SPI and average monthly SPI in the peak of wet  season is significantly 
 
 ## Anova analysis
 We hypothesize drainage area of three regions may be different. We propose null hypothesis is drainage area means of three regions are the same. The alternativae hypothesis is drainage area means of three regions are different.  
+
 ### effect of region on drainage_area_km
 ```{r}
 survey_final_gis$studycode<- factor(survey_final_gis$region)
@@ -435,31 +436,17 @@ aov_rainfall <- aov(rainfall~ region, data=survey_final_gis )
 summary(aov_rainfall)
 TukeyHSD(aov_rainfall, conf.level=.95)
 ```
-As p-value for F test of AONVA is very small, rainfall in three regions is not the same. It can be seen the rainfall in region "3"Rolim de Moura is less than that in the other two.  
+As p-value for F test of AONVA is very small, rainfall in three regions is not the same. It can be seen the rainfall in region "Rolim de Moura" is less than that in the other two.  
 
 
 ### effect of region on wealth 
 ```{r}
-aov_vechval <- aov(vechval~ studycode, data=survey_final_gis_clean)
+aov_vechval <- aov(vechval~ region, data=survey_final_gis_clean)
 summary(aov_vechval)
 TukeyHSD(aov_vechval, conf.level=.95)
 
 ```
-The family wealth is significant different in three regions. The wealth in region 3 is the largest.  
-
-divide rainfall
-```{r}
-rainfall_group<- cut(survey_final_gis$rainfall, c(0,1950,2300), label=c("low","high"))
-survey_final_gis2 <- mutate(survey_final_gis, rainfall_group)
-aov_incbeef2 <- aov(incbeef ~ rainfall_group, data=survey_final_gis2)
-summary(aov_incbeef2)
-TukeyHSD(aov_incbeef2, conf.level=.95)
-```
-
-
-
-# Multivariate analysis
-
+The family wealth is significant different in three regions. The wealth in region "3"Rolim de Moura" is the largest.  
 
 # Modelling
 
