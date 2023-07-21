@@ -488,6 +488,19 @@ summary(aov_forest_conservation)
 ```
 There is not a significant difference amongst regions due to forest conservation
 
+### Effect of wealth on number of adaptations
+```{r}
+survey_final_gis <- survey_final_gis %>% mutate(adaptation_count = cattle_management + pasture_management + water_management + forest_conservation)
+aov_vechval_adaptation_count <- aov(vechval ~ adaptation_count, data = survey_final_gis)
+summary(aov_vechval_adaptation_count)
+```
+
+```{r}
+fit_lr <- lm(adaptation_count ~ vechval, data = survey_final_gis)
+summary(fit_lr)
+```
+
+
 # Modelling
 
 ## Multiple Logistic Regression Model
@@ -624,10 +637,10 @@ Log(drainage area) is highly significant again
 Let's now look at water management
 ```{r}
 fit_water <- glm(water_management ~ drainage_area_km, family = binomial,data = survey_final_gis)
-summary(fit_forest)
+summary(fit_water)
 
 fit_water_log <- glm(water_management ~ log(drainage_area_km), family = binomial,data = survey_final_gis)
-summary(fit_forest_log)
+summary(fit_water_log)
 ```
 
 Similar results again. Log(drainage area) is significant for each of the adaptation categories.
@@ -737,3 +750,26 @@ summary(fit_wealth_drain_forest)
 #summary(fit_wealth_drain_any_adaptation )
 ```
 
+Since we've seen that wealth is so important for adaptation, but drainage area importance 
+decreases for wealth, let's see if other water availability proxies are signficant for the
+individual adaptations
+
+```{r}
+fit_cattle_full <- glm(cattle_management ~ SPImax_year + vechval, family = binomial,data = survey_final_gis)
+summary(fit_cattle)
+```
+
+```{r}
+fit_water_full <- glm(water_management ~ SPImax_year + vechval, family = binomial,data = survey_final_gis)
+summary(fit_water_full)
+```
+
+```{r}
+fit_pasture_full <- glm(pasture_management ~ rainfall+ vechval, family = binomial,data = survey_final_gis)
+summary(fit_pasture_full)
+```
+
+```{r}
+fit_forest_full <- glm(forest_conservation ~ SPImin_year + vechval, family = binomial,data = survey_final_gis)
+summary(fit_forest_full)
+```
