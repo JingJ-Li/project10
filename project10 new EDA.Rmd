@@ -234,8 +234,6 @@ Let's also look at some basic summary statistics
 describe(survey_final_gis[c('drainage_area_km', 'rainfall', 'rainfall_wet', 'rainfall_dry', 'SPI_wet', 'SPI_dry', 'incbeef', 'vechval', 'lotprice', 'family')], fast=TRUE)
 
 ```
-
-
 I'm curious about how many farms made multiple adaptations
 
 ```{r}
@@ -410,6 +408,7 @@ summary(fit_4)
 ### Indivdual Adaptation Variables
 >>>>>>> 325ff5089c83501369aed9c3b40bfd7b1b5bfa1f
 Now look at individual adaptation variables
+
 ```{r}
 fit_cattle <- glm(cattle_management ~ drainage_area_km, family = binomial,data = survey_final_gis)
 summary(fit_cattle)
@@ -1013,41 +1012,3 @@ With the drainage area outliers removed, drainage area is significant for forest
 
 
 >>>>>>> 5943cb226095ba196c7ef7c2a597565fdd326e4d
-
-# Tree modeling
-```{r}
-library(tidyverse)
-library(caret)
-library(rpart)
-#split into training and test
-train <- sample(1:nrow(survey_final_gis_wealth), size = nrow(survey_final_gis_wealth)*0.8)
-test <- dplyr::setdiff(1:nrow(survey_final_gis_wealth), train)
-survey_final_gis_Train <- survey_final_gis_wealth[train, ]
-survey_final_gis_Test <- survey_final_gis_wealth[test, ]
-
-#fit models using repeated CV
-
-
-classTree <- train(cattle_management ~  log(drainage_area_km) + vechval , data = survey_final_gis_Train, method = "rpart",
-trControl = trainControl(method = "repeatedcv", number = 10, repeats = 5),
-preProcess = c("center", "scale"))
-baggedTree <- train(cattle_management ~ log(drainage_area_km) + vechval, data = survey_final_gis_Train, method = "treebag",
-trControl = trainControl(method = "repeatedcv", number = 10, repeats = 5),
-preProcess = c("center", "scale"))
-rfTree <- train(cattle_management ~ log(drainage_area_km) + vechval, data = survey_final_gis_Train, method = "rf",
-trControl = trainControl(method = "repeatedcv", number = 10, repeats = 5),
-preProcess = c("center", "scale"))
-boostTree <- train(cattle_management ~ log(drainage_area_km) + vechval, data = survey_final_gis_Train, method = "gbm",
-trControl = trainControl(method = "repeatedcv", number = 10, repeats = 5),
-preProcess = c("center", "scale"), verbose = FALSE)
-
-treeTbl <- table(data.frame(pred = predict(classTree, survey_final_gis_Test ), true = survey_final_gis_Test $cattle_management))
-baggedTbl <- table(data.frame(pred = predict(baggedTree, survey_final_gis_Test ), true = survey_final_gis_Test $cattle_management))
-rfTbl <- table(data.frame(pred = predict(rfTree, survey_final_gis_Test ), true = survey_final_gis_Test $cattle_management))
-boostTbl <- table(data.frame(pred = predict(boostTree, survey_final_gis_Test), true = survey_final_gis_Test $cattle_management))
-#misclassificatoon rate
-1-c(tree = sum(diag(treeTbl)/sum(treeTbl)), bag = sum(diag(baggedTbl)/sum(baggedTbl)),
-rf = sum(diag(rfTbl)/sum(rfTbl)),
-boost = sum(diag(boostTbl)/sum(boostTbl)))
-```
-
