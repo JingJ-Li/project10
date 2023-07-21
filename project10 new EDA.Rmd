@@ -333,7 +333,24 @@ TukeyHSD(aov_water_management, conf.level=.95)
 ```
 Based on the p-value, we know at least two regions are signficantly different
 Using the results of Tukey's HSD, we can see that regions 1 and 2 (Ariquemes and OPO)
-are signficantly different when it comes to water management
+are significantly different when it comes to water management
+
+Next - pasture management
+```{r}
+aov_pasture_management <- aov(pasture_management ~ studycode, data = survey_final_gis)
+summary(aov_pasture_management)
+TukeyHSD(aov_pasture_management, conf.level=.95)
+```
+From the result of the ANOVA, we can see there is a difference between at least one region.
+Looking at the result of Tukey, we can see the difference is significant between regions 1 and 2, and regions 2 and 3
+
+Next - forest conservation
+```{r}
+aov_forest_conservation <- aov(forest_conservation ~ studycode, data = survey_final_gis)
+summary(aov_forest_conservation)
+#TukeyHSD(aov_pasture_management, conf.level=.95)
+```
+There is not a signficant difference amongst regions due to forest conservation
 
 # Modelling
 
