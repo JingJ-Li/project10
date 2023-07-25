@@ -2,7 +2,9 @@
 title: "st542_project10"
 author: "Jingjing Li"
 date: "2023-06-15"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r}
@@ -131,52 +133,52 @@ NOTE 2: Plots are currently using the data as-is while waiting for a response on
 Start EDA with some individual variable histograms.
 
 ```{r}
-g <- ggplot(data = survey_gis, aes(x = drainage_area_km))
+g <- ggplot(data = survey_final_gis, aes(x = drainage_area_km))
 g + geom_histogram() + labs(title = "Histogram of Drainage Area")
 
-g <- ggplot(data = survey_gis, aes(x = rainfall))
+g <- ggplot(data = survey_final_gis, aes(x = rainfall))
 g + geom_histogram() + labs(title = "Boxplot of Rainfall")
 
-g <- ggplot(data = survey_gis, aes(x = SPI_year))
+g <- ggplot(data = survey_final_gis, aes(x = SPI_year))
 g + geom_histogram() + labs(title = "Histogram of Average Yearly SPI")
 
-g <- ggplot(data = survey_gis, aes(x = vechval))
+g <- ggplot(data = survey_final_gis, aes(x = vechval))
 g + geom_histogram() + labs(title = "Histogram of Vehicle Value")
 
-g <- ggplot(data = survey_gis, aes(x = family))
+g <- ggplot(data = survey_final_gis, aes(x = family))
 g + geom_histogram() + labs(title = "Histogram of Family Size")
 
-g <- ggplot(data = survey_gis, aes(x = lotsize_gis))
+g <- ggplot(data = survey_final_gis, aes(x = lotsize_gis))
 g + geom_histogram() + labs(title = "Histogram of Lot Size")
 
 ```
 Next, we can look at some box plots
 ```{r}
-g <- ggplot(data = survey_gis, aes(x = drainage_area_km))
+g <- ggplot(data = survey_final_gis, aes(x = drainage_area_km))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area")
 
-g <- ggplot(data = survey_gis, aes(x = rainfall))
+g <- ggplot(data = survey_final_gis, aes(x = rainfall))
 g + geom_boxplot() + labs(title = "Boxplot of Rainfall")
 
-g <- ggplot(data = survey_gis, aes(x = SPI_year))
+g <- ggplot(data = survey_final_gis, aes(x = SPI_year))
 g + geom_boxplot() + labs(title = "Boxplot of Average Yearly SPI")
 
-g <- ggplot(data = survey_gis, aes(x = SPI_dry))
+g <- ggplot(data = survey_final_gis, aes(x = SPI_dry))
 g + geom_boxplot() + labs(title = "Boxplot of Average in Peak Dry Season")
 
-g <- ggplot(data = survey_gis, aes(x = SPI_wet))
+g <- ggplot(data = survey_final_gis, aes(x = SPI_wet))
 g + geom_boxplot() + labs(title = "Boxplot of Average in Peak Wet Season")
 
-g <- ggplot(data = survey_gis, aes(x = vechval))
+g <- ggplot(data = survey_final_gis, aes(x = vechval))
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value")
 
-g <- ggplot(data = survey_gis, aes(x = family))
+g <- ggplot(data = survey_final_gis, aes(x = family))
 g + geom_boxplot() + labs(title = "Boxplot of Family Size")
 
-g <- ggplot(data = survey_gis, aes(x = lotsize_gis))
+g <- ggplot(data = survey_final_gis, aes(x = lotsize_gis))
 g + geom_boxplot() + labs(title = "Boxplot of Lot Size")
 
-g <- ggplot(data = survey_gis, aes(x = eduhh_most))
+g <- ggplot(data = survey_final_gis, aes(x = eduhh_most))
 g + geom_boxplot() + 
   labs(title = "Boxplot of Level of Education of Most Educated Household Member")
 
@@ -186,10 +188,9 @@ Let's look at barplots for a few categorical variables
 
 
 ```{r}
-ggplot(survey_gis, aes(x=irrigation)) + geom_bar() + 
+ggplot(survey_final_gis, aes(x=irrigation)) + geom_bar() + 
   labs(title = "Barplot of Number of Irrigation Systems")
-drai
-ggplot(survey_gis, aes(x=well)) + geom_bar() + 
+ggplot(survey_final_gis, aes(x=well)) + geom_bar() + 
   labs(title = "Barplot of Number of Wells")
 
 
@@ -364,28 +365,6 @@ data_no_outlier_0 <- subset(survey_final_gis[survey_final_gis$any_adaptation==0,
  
 t.test(data_no_outlier_1 , data_no_outlier_0 ,na.rm=TRUE,var.equal = FALSE)
 ```
-## t test for vechval 
-```{r}
-quartiles_1 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==1,]$vechval, probs=c(.25, .75), na.rm = FALSE)
-IQR_1 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==1,]$vechval,na.rm = FALSE)
- 
-Lower_1 <- quartiles_1[1] - 1.5*IQR_1
-Upper_1 <- quartiles_1[2] + 1.5*IQR_1
- 
-data_no_outlier_1<- subset(survey_final_gis[survey_final_gis$any_adaptation==1,]$vechval, survey_final_gis[survey_final_gis$any_adaptation==1,]$vechval> Lower_1 & survey_final_gis[survey_final_gis$any_adaptation==1,]$vechval< Upper_1)
-
-quartiles_0 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==0,]$vechval, probs=c(.25, .75), na.rm = FALSE)
-IQR_0 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==0,]$vechval,na.rm = FALSE)
- 
-Lower_0 <- quartiles_0[1] - 1.5*IQR_0
-Upper_0 <- quartiles_0[2] + 1.5*IQR_0
- 
-data_no_outlier_0 <- subset(survey_final_gis[survey_final_gis$any_adaptation==0,]$vechval, survey_final_gis[survey_final_gis$any_adaptation==0,]$vechval> Lower_0 & survey_final_gis[survey_final_gis$any_adaptation==0,]$vechval< Upper_0)
- 
-t.test(data_no_outlier_1 , data_no_outlier_0 ,na.rm=TRUE,var.equal = FALSE)
-```
-
-
 ## t test for milkincome at different seasons  
 We would like to see if there is any difference of milkincome between dry and wet season. The null hypothesis is mean value of milkincome is the same for dry and wet season. H0: $\mu_{mlkinc,dry}=\mu_{mlkinc,wet)}$ vs Ha: $\mu_{mlkinc,dry} \ne \mu_{mlkinc,wet)}$  
 
