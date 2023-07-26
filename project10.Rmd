@@ -128,8 +128,6 @@ And everyone did some sort of adaptation method. Great - this means if we drop a
 
 ## Exploratory Data Analysis
 
-NOTE 2: Plots are currently using the data as-is while waiting for a response on the duplicate values
-
 Start EDA with some individual variable histograms.
 
 ```{r}
@@ -148,8 +146,8 @@ g + geom_histogram() + labs(title = "Histogram of Vehicle Value")
 g <- ggplot(data = survey_final_gis, aes(x = family))
 g + geom_histogram() + labs(title = "Histogram of Family Size")
 
-g <- ggplot(data = survey_final_gis, aes(x = lotsize_gis))
-g + geom_histogram() + labs(title = "Histogram of Lot Size")
+g <- ggplot(data = survey_final_gis, aes(x = lotprice))
+g + geom_histogram() + labs(title = "Histogram of Lot Price")
 
 ```
 Next, we can look at some box plots
@@ -175,26 +173,12 @@ g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value")
 g <- ggplot(data = survey_final_gis, aes(x = family))
 g + geom_boxplot() + labs(title = "Boxplot of Family Size")
 
-g <- ggplot(data = survey_final_gis, aes(x = lotsize_gis))
-g + geom_boxplot() + labs(title = "Boxplot of Lot Size")
-
-g <- ggplot(data = survey_final_gis, aes(x = eduhh_most))
-g + geom_boxplot() + 
-  labs(title = "Boxplot of Level of Education of Most Educated Household Member")
-
-```
-
-Let's look at barplots for a few categorical variables
-
-
-```{r}
-ggplot(survey_final_gis, aes(x=irrigation)) + geom_bar() + 
-  labs(title = "Barplot of Number of Irrigation Systems")
-ggplot(survey_final_gis, aes(x=well)) + geom_bar() + 
-  labs(title = "Barplot of Number of Wells")
+g <- ggplot(data = survey_final_gis, aes(x = lotprice))
+g + geom_boxplot() + labs(title = "Boxplot of Lot Price")
 
 
 ```
+
 
 Let's look at boxplots of drainage area and vehicle value (wealth) grouped by cattle.
 
@@ -209,117 +193,173 @@ g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") 
 
 ```
 
+Let's look at a few box plots split by region
+
+```{r}
+
+g <- ggplot(data = survey_final_gis, aes(x = drainage_area_km, y = as.factor(studycode)))
+g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Region") +
+  ylab("Region")
+
+g <- ggplot(data = survey_final_gis, aes(x = SPI_dry, y = as.factor(studycode)))
+g + geom_boxplot() + labs(title = "Boxplot of Dry Season SPI grouped by Region") +
+  ylab("Region")
+
+g <- ggplot(data = survey_final_gis, aes(x = SPI_wet, y = as.factor(studycode)))
+g + geom_boxplot() + labs(title = "Boxplot of Wet Season SPI grouped by Region") +
+  ylab("Region")
+
+g <- ggplot(data = survey_final_gis, aes(x = rainfall_dry, y = as.factor(studycode)))
+g + geom_boxplot() + labs(title = "Boxplot of Dry Season Rainfall grouped by Region") +
+  ylab("Region")
+
+g <- ggplot(data = survey_final_gis, aes(x = rainfall_wet, y = as.factor(studycode)))
+g + geom_boxplot() + labs(title = "Boxplot of Wet Season Rainfall grouped by Region") +
+  ylab("Region")
+
+```
+
 Next lets look at pair plots
 
 ```{r}
-pairs_subset <- survey_final_gis %>% select(c(vechval, family, drainage_area_km, SPImax_year, havecattle, rainfall, lotprice))
+pairs_subset <- survey_final_gis %>% select(c(drainage_area_km, SPImax_year, rainfall, studycode, havecattle, vechval, lotprice, incbeef))
 pairs(pairs_subset)
 
 ```
+
+Let's look at how many households fall into each region
+
 ```{r}
-describe(survey_gis[c('drainage_area_km', 'rainfall', 'rainfall_wet', 'rainfall_dry', 'SPI_wet', 'SPI_dry', 'incbeef',  'vechval', 'milkincwet','milkincdry','lotprice', 'family')], fast=TRUE) # "I don't know why "milkincome is missed here.
+table(survey_final_gis$studycode)
 ```
 
-## boxplot supplement
+Let's also look at some basic summary statistics
 
+```{r}
+describe(survey_final_gis[c('drainage_area_km', 'rainfall', 'rainfall_wet', 'rainfall_dry', 'SPI_wet', 'SPI_dry', 'incbeef', 'vechval', 'lotprice', 'family')], fast=TRUE)
+
+```
+
+
+I'm curious about how many farms made multiple adaptations
+
+```{r}
+table(survey_final_gis$cattle_management, survey_final_gis$pasture_management)
+
+table(survey_final_gis$cattle_management, survey_final_gis$forest_conservation)
+
+table(survey_final_gis$cattle_management, survey_final_gis$water_management)
+
+table(survey_final_gis$pasture_management, survey_final_gis$forest_conservation)
+
+table(survey_final_gis$pasture_management, survey_final_gis$water_management)
+
+table(survey_final_gis$forest_conservation, survey_final_gis$water_management)
+```
+
+It looks like the majority of farmers who adapted did more than one thing.
+
+## boxplot supplement
 ### Effect of region on drainage area, rainfall and vechval  
 ```{r}
-g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(region)))
+g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(region)))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by region") +
-  ylab("region")
-g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(region)))
+  xlab("region")
+g <- ggplot(data = survey_final_gis, aes(y = rainfall, x= as.factor(region)))
 g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by region") +
-  ylab("region")
-g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(region)))
+  xlab("region")
+g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(region)))
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by region") +
-  ylab("region")
+  xlab("region")
 ```
 ### Effect of cattle_management on drainage area, rainfall and vechval  
 ```{r}
-g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(cattle_management)))
+g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(cattle_management)))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle_management") +
-  ylab("cattle_management")
+  xlab("cattle_management")
 
-g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(cattle_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
-  ylab("cattle_management")
+g <- ggplot(data = survey_final_gis, aes(y = rainfall, x = as.factor(cattle_management)))
+g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by Cattle_management") +
+  xlab("cattle_management")
 
-g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(cattle_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
-  ylab("cattle_management")
+g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(cattle_management)))
+g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle_management") +
+  xlab("cattle_management")
 
 ```
 ### Effect of pasture_management  on drainage area, rainfall and vechval  
 ```{r}
-g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(pasture_management)))
+g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(pasture_management)))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by pasture_management") +
-  ylab("pasture_management")
+  xlab("pasture_management")
 
-g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(pasture_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by pasture_management") +
-  ylab("pasture_management")
+g <- ggplot(data = survey_final_gis, aes(y = rainfall, x = as.factor(pasture_management)))
+g + geom_boxplot() + labs(title = "Boxplot of Vrainfall grouped by pasture_management") +
+  xlab("pasture_management")
 
-g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(pasture_management)))
+g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(pasture_management)))
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by pasture_management") +
-  ylab("pasture_management")
+  xlab("pasture_management")
 ```
 
 ### Effect of forest_conservation on drainage area, rainfall and vechval  
 ```{r}
-g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(forest_conservation)))
+g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(forest_conservation)))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by forest_conservation") +
-  ylab("forest_conservation")
+  xlab("forest_conservation")
 
-g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(forest_conservation)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by forest_conservation") +
-  ylab("forest_conservation")
+g <- ggplot(data = survey_final_gis, aes(y = rainfall, x = as.factor(forest_conservation)))
+g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by forest_conservation") +
+  xlab("forest_conservation")
 
-g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(forest_conservation)))
+g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(forest_conservation)))
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by forest_conservation") +
-  ylab("forest_conservation")
+  xlab("forest_conservation")
 ```
 
 ### Effect of water_management on drainage area, rainfall and vechval  
 ```{r}
-g <- ggplot(data = survey_final_gis, aes(x = log(drainage_area_km), y = as.factor(water_management)))
+g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(water_management)))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by water_management") +
-  ylab("water_management")
+  xlab("water_management")
 
-g <- ggplot(data = survey_final_gis, aes(x = rainfall, y = as.factor(water_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by water_management") +
-  ylab("water_management")
+g <- ggplot(data = survey_final_gis, aes(y = rainfall, x = as.factor(water_management)))
+g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by water_management") +
+  xlab("water_management")
 
-g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(water_management)))
+g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(water_management)))
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by water_management") +
-  ylab("water_management")
+  xlab("water_management")
 ```
 ### Effect of any_adaptation on drainage area, rainfall and vechval 
 
 ```{r}
-g <- ggplot(data = survey_final_gis_clean, aes(x = log(drainage_area_km), y = as.factor(any_adaptation)))
+g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(any_adaptation)))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by any_adaptation") +
-  ylab("any_adaptation")
+  xlab("any_adaptation")
 
+g <- ggplot(data = survey_final_gis, aes(y = rainfall, x = as.factor(any_adaptation)))
+g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by any_adaptation") +
+  xlab("any_adaptation")
 
-g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(any_adaptation)))
+g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(any_adaptation)))
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by any_adaptation") +
-  ylab("any_adaptation")
+  xlab("any_adaptation")
 ```
-Boxplot of 
+
+Boxplotx of milkincome, SPI and rainfall
 ```{r}
-milkcinc <- data.frame(survey_final_gis_clean$milkincwet,survey_final_gis_clean$milkincdry)
+milkcinc <- data.frame(survey_final_gis$milkincwet,survey_final_gis$milkincdry)
 boxplot(milkcinc)
 ```
 ```{r}
-SPI <- data.frame(survey_final_gis_clean$SPI_wet,survey_final_gis_clean$SPI_dry)
+SPI <- data.frame(survey_final_gis$SPI_wet,survey_final_gis$SPI_dry)
 boxplot(SPI)
 ```
 ```{r}
-rainfall <- data.frame(survey_final_gis_clean$rainfall_wet,survey_final_gis_clean$rainfall_dry)
+rainfall <- data.frame(survey_final_gis$rainfall_wet,survey_final_gis$rainfall_dry)
 boxplot(rainfall)
 ```
-
-
 # Statisitcal analysis
 ## t test for drainage area
 
