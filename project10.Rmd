@@ -1539,34 +1539,6 @@ title(main = "Forest Conservation Probability vs Drainage Area")
 ```
 
 
-
-What happens if I filter by "have cattle" and look at cattle_management
-
-```{r}
-survey_havecattle <-survey_final_gis %>% filter(havecattle ==1)
-fit_cattle_have <- glm(cattle_management ~ drainage_area_km, family = binomial,data = survey_havecattle)
-summary(fit_cattle_have)
-
-fit_cattle_have_log <- glm(cattle_management ~ log(drainage_area_km), family = binomial,data = survey_havecattle)
-summary(fit_cattle_have_log)
-```
-
-Interesting, if we only include those that have cattle, the significance of the log(drainage area) disappears.
-
-Let's see if anything similar happens when filtered by havecattle for any of the other adaptations
-```{r}
-fit_pasture_have_log <- glm(pasture_management ~ log(drainage_area_km), family = binomial,data = survey_havecattle)
-summary(fit_pasture_have_log)
-
-fit_forest_have_log <- glm(forest_conservation ~ log(drainage_area_km), family = binomial,data = survey_havecattle)
-summary(fit_forest_have_log)
-
-fit_water_have_log <- glm(water_management ~ log(drainage_area_km), family = binomial,data = survey_havecattle)
-summary(fit_forest_have_log)
-```
-
-We still have a significant log(drainage area) for all of the other adaptation categories.
-
 I'm curious about how many farms made multiple adaptations
 ```{r}
 table(survey_final_gis$cattle_management, survey_final_gis$pasture_management)
@@ -1585,18 +1557,7 @@ table(survey_final_gis$forest_conservation, survey_final_gis$water_management)
 It looks like the majority of farmers who adapted did more than one thing.
 
 
-Let's also look at deforestation as a linear model
-```{r}
-fit_deforest <- lm(cleared_area ~ drainage_area_km, data = survey_final_gis)
-summary(fit_deforest)
-
-fit_deforest_log <- lm(cleared_area ~ log(drainage_area_km), data = survey_final_gis)
-summary(fit_deforest_log)
-```
-
-We see significance for both the drainage area and the log(drainage area). Both had positive coefficients, which is confusing if my understanding of drainage_area and cleared_area are both correct.
-
-modeling for the wealth
+Modeling for the wealth
 ```{r}
 # remove data of vechval with "NA"
 survey_final_gis_wealth <- survey_final_gis %>% filter(!is.na(survey_final_gis$vechval))
