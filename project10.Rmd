@@ -1515,6 +1515,86 @@ summary(fit_deforest_log)
 
 We see significance for both the drainage area and the log(drainage area). Both had positive coefficients, which is confusing if my understanding of drainage_area and cleared_area are both correct.
 
+modeling for the wealth
+```{r}
+# remove data of vechval with "NA"
+survey_final_gis_wealth <- survey_final_gis %>% filter(!is.na(survey_final_gis$vechval))
+fit_wealth_water <- glm(water_management~  vechval , family = binomial, data = survey_final_gis_wealth )
+fit_wealth_cattle  <- glm(cattle_management~  vechval , family = binomial, data = survey_final_gis_wealth )
+fit_wealth_pasture  <- glm(pasture_management~  vechval , family = binomial, data = survey_final_gis_wealth )
+fit_wealth_forest <- glm(forest_conservation~  vechval , family = binomial, data = survey_final_gis_wealth )
+#fit_wealth_any_adaptation <- glm(any_adaptation~  vechval , family = binomial, data = survey_final_gis_wealth )
+summary(fit_wealth_water)
+summary(fit_wealth_cattle)
+summary(fit_wealth_pasture)
+summary(fit_wealth_forest)
+#summary(fit_wealth_any_adaptation )
+```
+
+Now, we'll plot these models to get a visual on what they mean
+
+First with cattle management
+```{r}
+Predicted_data <- data.frame(vechval=seq(
+  min(survey_final_gis_wealth$vechval), max(survey_final_gis_wealth$vechval),len=500))
+ 
+# Fill predicted values using regression model
+Predicted_data$cattle_management = predict(
+  fit_wealth_cattle, Predicted_data, type="response")
+ 
+# Plot Predicted data and original data points
+plot(cattle_management ~ vechval, data=survey_final_gis_wealth)
+lines(cattle_management ~ vechval, Predicted_data, lwd=2, col="green")
+title(main = "Cattle Management Probability vs Wealth")
+```
+
+Now water management
+```{r}
+Predicted_data <- data.frame(vechval=seq(
+  min(survey_final_gis_wealth$vechval), max(survey_final_gis_wealth$vechval),len=500))
+ 
+# Fill predicted values using regression model
+Predicted_data$water_management = predict(
+  fit_wealth_water, Predicted_data, type="response")
+ 
+# Plot Predicted data and original data points
+plot(water_management ~ vechval, data=survey_final_gis_wealth)
+lines(water_management ~ vechval, Predicted_data, lwd=2, col="purple")
+title(main = "Water Management Probability vs Wealth")
+```
+
+Now pasture management
+
+```{r}
+Predicted_data <- data.frame(vechval=seq(
+  min(survey_final_gis_wealth$vechval), max(survey_final_gis_wealth$vechval),len=500))
+ 
+# Fill predicted values using regression model
+Predicted_data$pasture_management = predict(
+  fit_wealth_pasture, Predicted_data, type="response")
+ 
+# Plot Predicted data and original data points
+plot(pasture_management ~ vechval, data=survey_final_gis_wealth)
+lines(pasture_management ~ vechval, Predicted_data, lwd=2, col="blue")
+title(main = "Pasture Management Probability vs Wealth")
+```
+
+and finally forest conservation
+
+```{r}
+Predicted_data <- data.frame(vechval=seq(
+  min(survey_final_gis_wealth$vechval), max(survey_final_gis_wealth$vechval),len=500))
+ 
+# Fill predicted values using regression model
+Predicted_data$forest_conservation = predict(
+  fit_wealth_forest, Predicted_data, type="response")
+ 
+# Plot Predicted data and original data points
+plot(forest_conservation ~ vechval, data=survey_final_gis_wealth)
+lines(forest_conservation ~ vechval, Predicted_data, lwd=2, col="red")
+title(main = "Forest Conservation Probability vs Wealth")
+```
+
 Look at models with vehicle value and drainage area. Drainage area was not significant in any models, but log(drainage area) is for some.
 ```{r}
 survey_final_gis_wealth <- survey_final_gis %>% filter(!is.na(survey_final_gis$vechval))
