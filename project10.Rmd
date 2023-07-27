@@ -1393,6 +1393,22 @@ fit_transform <- glm(any_adaptation ~ log(drainage_area_km), family = binomial,d
 summary(fit_transform)
 ```
 
+Let's plot it to get a visual to help wrap our heads around this model
+
+```{r}
+Predicted_data <- data.frame(drainage_area_km=seq(
+  min(survey_final_gis$drainage_area_km), max(survey_final_gis_wealth$drainage_area_km),len=500))
+ 
+# Fill predicted values using regression model
+Predicted_data$any_adaptation = predict(
+  fit_transform, Predicted_data, type="response")
+ 
+# Plot Predicted data and original data points
+plot(any_adaptation ~ drainage_area_km, data=survey_final_gis_wealth, log="x")
+lines(any_adaptation ~ drainage_area_km, Predicted_data, lwd=2, col="orange")
+title(main = "Adaptation Probability vs Drainage Area")
+```
+
 ### Model 4
 For this model, we will take Dr. Harris's suggestion of an indicator variable for
 the large drainage area lots (I believe is what he meant)
@@ -1458,6 +1474,71 @@ summary(fit_water_log)
 ```
 
 Similar results again. Log(drainage area) is significant for each of the adaptation categories.
+
+Let's make some plots to visualize them, starting with cattle management
+```{r}
+Predicted_data <- data.frame(drainage_area_km=seq(
+  min(survey_final_gis$drainage_area_km), max(survey_final_gis_wealth$drainage_area_km),len=500))
+ 
+# Fill predicted values using regression model
+Predicted_data$cattle_management = predict(
+  fit_cattle_log, Predicted_data, type="response")
+ 
+# Plot Predicted data and original data points
+plot(cattle_management ~ drainage_area_km, data=survey_final_gis_wealth, log="x")
+lines(cattle_management ~ drainage_area_km, Predicted_data, lwd=2, col="green")
+title(main = "Cattle Management Probability vs Drainage Area")
+```
+
+Now let's look at water management
+
+```{r}
+Predicted_data <- data.frame(drainage_area_km=seq(
+  min(survey_final_gis$drainage_area_km), max(survey_final_gis_wealth$drainage_area_km),len=500))
+ 
+# Fill predicted values using regression model
+Predicted_data$water_management = predict(
+  fit_water_log, Predicted_data, type="response")
+ 
+# Plot Predicted data and original data points
+plot(water_management ~ drainage_area_km, data=survey_final_gis_wealth, log="x")
+lines(water_management ~ drainage_area_km, Predicted_data, lwd=2, col="purple")
+title(main = "Water Management Probability vs Drainage Area")
+```
+
+Next, let's look at pasture management
+
+```{r}
+Predicted_data <- data.frame(drainage_area_km=seq(
+  min(survey_final_gis$drainage_area_km), max(survey_final_gis_wealth$drainage_area_km),len=500))
+ 
+# Fill predicted values using regression model
+Predicted_data$pasture_management = predict(
+  fit_pasture_log, Predicted_data, type="response")
+ 
+# Plot Predicted data and original data points
+plot(pasture_management ~ drainage_area_km, data=survey_final_gis_wealth, log="x")
+lines(pasture_management ~ drainage_area_km, Predicted_data, lwd=2, col="blue")
+title(main = "Pasture Management Probability vs Drainage Area")
+```
+
+And finally, forest conservation
+
+```{r}
+Predicted_data <- data.frame(drainage_area_km=seq(
+  min(survey_final_gis$drainage_area_km), max(survey_final_gis_wealth$drainage_area_km),len=500))
+ 
+# Fill predicted values using regression model
+Predicted_data$forest_conservation = predict(
+  fit_forest_log, Predicted_data, type="response")
+ 
+# Plot Predicted data and original data points
+plot(forest_conservation~ drainage_area_km, data=survey_final_gis_wealth, log="x")
+lines(forest_conservation ~ drainage_area_km, Predicted_data, lwd=2, col="red")
+title(main = "Forest Conservation Probability vs Drainage Area")
+```
+
+
 
 What happens if I filter by "have cattle" and look at cattle_management
 
