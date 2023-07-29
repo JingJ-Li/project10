@@ -1,10 +1,4 @@
 ---
-output:
-  pdf_document: default
-  html_document: default
----
-<<<<<<< HEAD
----
 title: "st542_project10"
 author: "Annie Brinza, Jingjing Li, Nicole Levin"
 date: "2023-06-15"
@@ -14,6 +8,7 @@ output:
 ---
 
 ```{r}
+#load packages for analysis
 library(tidyverse)
 library(ggplot2)
 library(haven)
@@ -265,48 +260,58 @@ table(survey_final_gis$forest_conservation, survey_final_gis$water_management)
 
 It looks like the majority of farmers who adapted did more than one thing.
 
-## boxplot supplement
+## boxplots for checking the effect of categoricals on numeric variables  
+Boxplots can help us to overview the relationship of categorical variables such as regions and adaptations and numeric variables such as drainage area, rainfall and wealth.  
+
 ### Effect of region on drainage area, rainfall and vechval  
+Considering our data are based on three regions, we first would like to see drainage area, rainfall and wealth differ in three regions. Note that we use the data without "NA" here.
 ```{r}
-g <- ggplot(data = survey_final_gis_clean, aes(y = log(drainage_area_km), x = as.factor(region)))
+g <- ggplot(data = survey_final_gis_clean, aes(x = as.factor(region),y = log(drainage_area_km)))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by region") +
   xlab("region")
-g <- ggplot(data = survey_final_gis_clean, aes(y = rainfall, x= as.factor(region)))
+g <- ggplot(data = survey_final_gis_clean, aes(x= as.factor(region),y = rainfall))
 g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by region") +
   xlab("region")
-g <- ggplot(data = survey_final_gis_clean, aes(y = vechval, x = as.factor(region)))
+g <- ggplot(data = survey_final_gis_clean, aes( x = as.factor(region),y = vechval))
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by region") +
   xlab("region")
 ```
+Above figure shows drainage area and vechval is marginly different in three regions, while the rainfall on region “Rolim” is much less than the other two. This indicates there is interaction between drainage area and rainfall and we need to be cautious during the modeling using these two variables. On the other hand, some outliers exisit in the data. It is necessary to remove outliers during statistical analysis.  
+
+Next, We can designate binary adaptation measures as factors and compare numeric variables with and without adaptation measures and estimate the relationship between them. We are going to investigate all four adaptation measures at first and then the combined one, any_adaptation. 
+
 ### Effect of cattle_management on drainage area, rainfall and vechval  
 ```{r}
-g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(cattle_management)))
+g <- ggplot(data = survey_final_gis, aes(x = as.factor(cattle_management), y = log(drainage_area_km)))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle_management") +
   xlab("cattle_management")
 
-g <- ggplot(data = survey_final_gis, aes(y = rainfall, x = as.factor(cattle_management)))
+g <- ggplot(data = survey_final_gis, aes(x = as.factor(cattle_management), y = rainfall))
 g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by Cattle_management") +
   xlab("cattle_management")
 
-g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(cattle_management)))
+g <- ggplot(data = survey_final_gis, aes(x = as.factor(cattle_management),y = vechval))
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle_management") +
   xlab("cattle_management")
 
 ```
+Cattle_management sounds exhibit slightly lower rainfall and higher wealth than the control without it. No visible log drainage area  
+
 ### Effect of pasture_management  on drainage area, rainfall and vechval  
 ```{r}
-g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(pasture_management)))
+g <- ggplot(data = survey_final_gis, aes(x = as.factor(pasture_management), y = log(drainage_area_km)))
 g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by pasture_management") +
   xlab("pasture_management")
 
-g <- ggplot(data = survey_final_gis, aes(y = rainfall, x = as.factor(pasture_management)))
+g <- ggplot(data = survey_final_gis, aes(x = as.factor(pasture_management),y = rainfall))
 g + geom_boxplot() + labs(title = "Boxplot of Vrainfall grouped by pasture_management") +
   xlab("pasture_management")
 
-g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(pasture_management)))
+g <- ggplot(data = survey_final_gis, aes(x = as.factor(pasture_management),y = vechval))
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by pasture_management") +
   xlab("pasture_management")
 ```
+Pasture_management shows higher log drainage area, lower rainfall and higher wealth than the control.  
 
 ### Effect of forest_conservation on drainage area, rainfall and vechval  
 ```{r}
@@ -322,6 +327,7 @@ g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(forest_conse
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by forest_conservation") +
   xlab("forest_conservation")
 ```
+Forst_conservation has higher drainage area, similar rainfall and higher wealth.  
 
 ### Effect of water_management on drainage area, rainfall and vechval  
 ```{r}
@@ -337,6 +343,8 @@ g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(water_manage
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by water_management") +
   xlab("water_management")
 ```
+Water_management has slightly higher log drainage area, lower rainfall and higher wealth. 
+
 ### Effect of any_adaptation on drainage area, rainfall and vechval 
 
 ```{r}
@@ -352,44 +360,54 @@ g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(any_adaptati
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by any_adaptation") +
   xlab("any_adaptation")
 ```
+Any_Adaptation shows higher log drainage area, lower rainfall than the control. Wealth data for the control is unavailable. 
 
-Boxplotx of milkincome, SPI and rainfall
-```{r}
-milkcinc <- data.frame(survey_final_gis$milkincwet,survey_final_gis$milkincdry)
-boxplot(milkcinc)
-```
-```{r}
-SPI <- data.frame(survey_final_gis$SPI_wet,survey_final_gis$SPI_dry)
-boxplot(SPI)
-```
+### Boxplots of milkincome, SPI and rainfall 
+Data also contain three numeric variables based on wet and dry season, which is suitable to see their difference 
+
 ```{r}
 rainfall <- data.frame(survey_final_gis$rainfall_wet,survey_final_gis$rainfall_dry)
 boxplot(rainfall)
 ```
-# Statisitcal analysis
-## t test for drainage area
+
 
 ```{r}
-quartiles_1 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km, probs=c(.25, .75), na.rm = TRUE)
-IQR_1 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km,na.rm = TRUE)
+SPI <- data.frame(survey_final_gis$SPI_wet,survey_final_gis$SPI_dry)
+boxplot(SPI)
+```
+
+```{r}
+milkcinc <- data.frame(survey_final_gis$milkincwet,survey_final_gis$milkincdry)
+boxplot(milkcinc)
+```
+
+It is apparent that wet season has much high rainfall (or SPI) than dry season. Wet season led to higher milkincome than dry season. 
+
+# Statisitcal analysis  
+## t test for drainage area
+Mean value of log drainage area with and without adaptation measures will be subjected to t test to see if they are significant different. As we show in EDA, log drainage area is basically normal distributed, it is reasonable two sample t-test is applied here. We first need to get rid of outliers. We regarded the data more than 1.5 times IQR as the outliers. 
+Null hypothesis
+$\mu_{x}=\mu_{y}$ vs Ha: $\mu_{x} \ne \mu_{y}$  where   $\mu_{x}$ and $\mu_{y}$ denote log drainage area, rainfall and wealth with and wihout any adaptation measures respectively.   
+```{r}
+quartiles_1 <- quantile(log(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km), probs=c(.25, .75), na.rm = TRUE)
+IQR_1 <- IQR(log(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km),na.rm = TRUE)
  
 Lower_1 <- quartiles_1[1] - 1.5*IQR_1
 Upper_1 <- quartiles_1[2] + 1.5*IQR_1
  
-data_no_outlier_1<- subset(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km, survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km> Lower_1 & survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km< Upper_1)
+data_no_outlier_1<- subset(log(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km), log(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km)> Lower_1 & log(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km)< Upper_1)
 
-quartiles_0 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km, probs=c(.25, .75), na.rm = TRUE)
-IQR_0 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km,na.rm = TRUE)
+quartiles_0 <- quantile(log(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km), probs=c(.25, .75), na.rm = TRUE)
+IQR_0 <- IQR(log(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km),na.rm = TRUE)
  
 Lower_0 <- quartiles_0[1] - 1.5*IQR_0
 Upper_0 <- quartiles_0[2] + 1.5*IQR_0
  
-data_no_outlier_0 <- subset(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km, survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km> Lower_0 & survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km< Upper_0)
+data_no_outlier_0 <- subset(log(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km), log(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km)> Lower_0 & log(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km)< Upper_0)
 
 t.test(data_no_outlier_1 , data_no_outlier_0 ,na.rm=TRUE,var.equal = FALSE)
 ```
-
-
+T-test demonstrated that any_adaptation has significant higher log drainage area than the control. 
 
 ## t test for rainfall 
 ```{r}
@@ -411,18 +429,36 @@ data_no_outlier_0 <- subset(survey_final_gis[survey_final_gis$any_adaptation==0,
  
 t.test(data_no_outlier_1 , data_no_outlier_0 ,na.rm=TRUE,var.equal = FALSE)
 ```
-## t test for milkincome at different seasons  
-We would like to see if there is any difference of milkincome between dry and wet season. The null hypothesis is mean value of milkincome is the same for dry and wet season. H0: $\mu_{mlkinc,dry}=\mu_{mlkinc,wet)}$ vs Ha: $\mu_{mlkinc,dry} \ne \mu_{mlkinc,wet)}$  
+T-test demonstrated that any_adaptation has significant lower rainfall than the control.
 
-```{r}
-t.test(survey_final_gis_clean$milkincwet,survey_final_gis_clean$milkincdry,na.rm=TRUE,var.equal = FALSE)
+## t test for vechval 
+Below is the code for wealth. Because the control has no available data, we don't run code here.  
+```{r,eval = FALSE}
+quartiles_1 <- quantile(survey_final_gis_clean[survey_final_gis_clean$any_adaptation==1,]$vechval, probs=c(.25, .75), na.rm = FALSE)
+IQR_1 <- IQR(survey_final_gis_clean[survey_final_gis_clean$any_adaptation==1,]$vechval,na.rm = FALSE)
+ 
+Lower_1 <- quartiles_1[1] - 1.5*IQR_1
+Upper_1 <- quartiles_1[2] + 1.5*IQR_1
+ 
+data_no_outlier_1<- subset(survey_final_gis_clean[survey_final_gis_clean$any_adaptation==1,]$vechval, survey_final_gis_clean[survey_final_gis_clean$any_adaptation==1,]$vechval> Lower_1 & survey_final_gis_clean[survey_final_gis_clean$any_adaptation==1,]$vechval< Upper_1)
+
+quartiles_0 <- quantile(survey_final_gis_clean[survey_final_gis_clean$any_adaptation==0,]$vechval, probs=c(.25, .75), na.rm = FALSE)
+IQR_0 <- IQR(survey_final_gis_clean[survey_final_gis_clean$any_adaptation==0,]$vechval,na.rm = FALSE)
+ 
+Lower_0 <- quartiles_0[1] - 1.5*IQR_0
+Upper_0 <- quartiles_0[2] + 1.5*IQR_0
+ 
+data_no_outlier_0 <- subset(survey_final_gis_clean[survey_final_gis_clean$any_adaptation==0,]$vechval, survey_final_gis_clean[survey_final_gis_clean$any_adaptation==0,]$vechval> Lower_0 & survey_final_gis_clean[survey_final_gis_clean$any_adaptation==0,]$vechval< Upper_0)
+ 
+t.test(data_no_outlier_1 , data_no_outlier_0 ,na.rm=TRUE,var.equal = FALSE)
 ```
-As p is much less than 0.05, we are confident the mean value of milkincome of wetseason is significant higher than dry season.  
+
 
 ## t-test for rainfall at different seasons
 ```{r}
 t.test(survey_final_gis_clean$rainfall_wet,survey_final_gis_clean$rainfall_dry,na.rm=TRUE,var.equal = FALSE)
 ```
+As we expected, wet season has much higher rainfall than dry season.  
 
 ## t-test for SPI at different seasons
 We would like to see if there is any difference in SPI between dry and wet season. The null hypothesis is mean value of SPI is the same for dry and wet season. H0: $\mu_{SPI,dry}=\mu_{SPI,wet)}$ vs Ha: $\mu_{SPI,dry} \ne \mu_{SPI,wet)}$ 
@@ -430,6 +466,14 @@ We would like to see if there is any difference in SPI between dry and wet seaso
 t.test(survey_final_gis_clean$SPI_wet,survey_final_gis_clean$SPI_dry,na.rm=TRUE,var.equal = FALSE)
 ```
 Average SPI and average monthly SPI in the peak of wet  season is significantly higher than those of dry season.   
+
+## t test for milkincome at different seasons  
+We would like to see if there is any difference of milkincome between dry and wet season. milkincome is supposed to be related to adaptation measures.  The null hypothesis is mean value of milkincome is the same for dry and wet season. H0: $\mu_{mlkinc,dry}=\mu_{mlkinc,wet}$ vs Ha: $\mu_{mlkinc,dry} \ne \mu_{mlkinc,wet}$  
+
+```{r}
+t.test(survey_final_gis_clean$milkincwet,survey_final_gis_clean$milkincdry,na.rm=TRUE,var.equal = FALSE)
+```
+As p is much less than 0.05, we are confident the mean value of milkincome of wetseason is significant higher than dry season.  
 
 ## Anova analysis
 We hypothesize drainage area of three regions may be different. We propose null hypothesis is drainage area means of three regions are the same. The alternativae hypothesis is drainage area means of three regions are different.  
@@ -797,918 +841,4 @@ summary(fit_pasture_full)
 ```{r}
 fit_forest_full <- glm(forest_conservation ~ SPImin_year + vechval, family = binomial,data = survey_final_gis)
 summary(fit_forest_full)
-#<<<<<<< HEAD
-#=======
-#=======
----
-title: "st542_project10"
-author: "Jingjing Li"
-date: "2023-06-15"
-output:
-  pdf_document: default
-  html_document: default
----
-
-```{r}
-library(tidyverse)
-library(ggplot2)
-library(haven)
-library(tidyverse)
-library(ggplot2)
-library(haven)
-library(psych)
-```
-
-### Exploring the merged data
-
-```{r}
-survey_merged <- read_dta("../data/merged_survey_panel96_19_noID.dta") 
-dim(survey_merged)
-survey_merged_clean <- survey_merged %>% 
-  filter(!is.na(lotid_qualtrics))
-# Removing duplicates for modelling - forgot to ask Mariana which should be kept, so just keeping first for now
-# Also open to just dropping all duplicated lotids - there's only 42
-survey_final <- survey_merged_clean %>% distinct(lotid_qualtrics, .keep_all = TRUE)
-```
-
-Now to check for nulls in columns:
-```{r}
-missing_vals <- survey_final %>% summarise_all(~sum(is.na(.)))
-t(missing_vals)
-```
-There seem to be a lot of columns missing 1026 values, which puts the numbers back to what we saw in the original data. Clearly there is a lot of missing data across all areas, so I don't think we should drop all rows missing data. 
-
-## Feature Engineering
-
-### Creating One Drainage Area Column 
-I will create one drainage area column, and then will drop all rows that don't have drainage area. Not sure if this is the best approach but this data is so messy!
-
-```{r}
-# There are two lots that have areas in each region - will drop them
-duplicate_regions <- survey_final %>% filter(!is.na(OPO_area_km) & !is.na(RO_area_km)) %>% select(lotid_qualtrics)
-survey_final <- survey_final %>% filter(!(lotid_qualtrics %in% duplicate_regions$lotid_qualtrics))
-survey_final <- survey_final %>% mutate(drainage_area_km = ifelse(!is.na(Drainage_AreaKM_Ari), Drainage_AreaKM_Ari, ifelse(!is.na(OPO_area_km), OPO_area_km, ifelse(!is.na(RO_area_km), RO_area_km, NA))),
-                                        region = ifelse(studycode == 1, "Ariquemes",
-                                                        ifelse(studycode == 2, "Ouro Preto do Oeste", ifelse(studycode == 3, "Rolim de Moura", NA)))) %>%
-  select(-c(Drainage_AreaKM_Ari, RO_area_km, OPO_area_km))
-```
-
-
-### Creating Individual Adaptation Method Booleans
-First, I need to create the indivdual adaptation method booleans i.e. `cattle_management` if the farmer employed any cattle management strategy. Then I can combine these to make a general adaptation method boolean.
-
-```{r}
-survey_final <- survey_final %>% mutate(cattle_management = case_when(feed_cattle == 1  | soil_analysis == 1 | cattleinputs_breed == 1 | semiconfine == 1 | sellcattle_droughtexp == 1 ~ 1, .default = 0),
-                                        pasture_management = case_when(irrigation_pas == 1 | pasture_productivity == 1 | fert_pasture ==1 | pest_pasture == 1 | fallow == 1 ~ 1, .default = 0),
-                                        forest_conservation = case_when(forest_rec == 1 | keep_veg == 1 ~ 1, .default = 0),
-                                        water_management = case_when(waterstructure == 1 | well_have == 1 | dam_have == 1 | reservoir_have == 1 ~ 1, .default = 0)) # Chose to use case when to account for NA - need to ask Mariana how these should be treated
-
-# Looking at distributions
-g <- ggplot(data = survey_final, aes(x = cattle_management))
-g + geom_bar() + labs(title = "Bar Plot of Cattle Management")
-
-g <- ggplot(data = survey_final, aes(x = pasture_management))
-g + geom_bar() + labs(title = "Bar Plot of Pasture Management")
-
-g <- ggplot(data = survey_final, aes(x = forest_conservation))
-g + geom_bar() + labs(title = "Bar Plot of Forest Conservation")
-
-g <- ggplot(data = survey_final, aes(x = water_management))
-g + geom_bar() + labs(title = "Bar Plot of Water Management")
-
-```
-
-### Creating General Adaptation Method Boolean
-Now that the indivdual adaptation measures have been created, I will create a general adaptation method boolean
-
-```{r}
-survey_final <- survey_final %>% mutate(any_adaptation = ifelse(cattle_management == 1 | pasture_management == 1 | forest_conservation == 1 | water_management == 1,1,0))
-
-# Looking at the distribution
-g <- ggplot(data = survey_final, aes(x = any_adaptation))
-g + geom_bar() + labs(title = "Bar Plot of Any Adaptation")
-```
-Not a fully even data set, but better balanced than I predicted it would be. I don't
-think rebalancing is needed for the final analysis.
-
-Now let's see if we remove farmers who don't have GIS information
-```{r}
-survey_final_gis <- survey_final %>% filter(!is.na(drainage_area_km))
-
-# Looking at the distribution
-g <- ggplot(data = survey_final_gis, aes(x = any_adaptation))
-g + geom_bar() + labs(title = "Bar Plot of Any Adaptation")
-```
-Now it is very imbalanced. Not as horrible as it could be - but could affect the outputs of the model. Is SPI still missing for these?
-
-```{r}
-missing_vals_gis <- survey_final_gis %>% summarise_all(~sum(is.na(.)))
-t(missing_vals_gis)
-```
-Now only for 140 of them, who are also missing region. Let's drop those and see:
-```{r}
-survey_final_gis_clean <- survey_final_gis %>% filter(!is.na(SPImin_year))
-
-# Looking at the distribution
-g <- ggplot(data = survey_final_gis_clean, aes(x = any_adaptation))
-g + geom_bar() + labs(title = "Bar Plot of Any Adaptation")
-
-# Looking at the distribution for the individual variables
-g <- ggplot(data = survey_final_gis_clean, aes(x = cattle_management))
-g + geom_bar() + labs(title = "Bar Plot of Cattle Management")
-
-g <- ggplot(data = survey_final_gis_clean, aes(x = pasture_management))
-g + geom_bar() + labs(title = "Bar Plot of Pasture Management")
-
-g <- ggplot(data = survey_final_gis_clean, aes(x = forest_conservation))
-g + geom_bar() + labs(title = "Bar Plot of Forest Conservation")
-
-g <- ggplot(data = survey_final_gis_clean, aes(x = water_management))
-g + geom_bar() + labs(title = "Bar Plot of Water Management")
-```
-And everyone did some sort of adaptation method. Great - this means if we drop all missing water data, we can't look at a relationship between general adaptation and results. If we include rows that are missing SPI and just use drainage area, there is still a model that can be run.
-
-## Exploratory Data Analysis
-
-Start EDA with some individual variable histograms.
-
-```{r}
-g <- ggplot(data = survey_final_gis, aes(x = drainage_area_km))
-g + geom_histogram() + labs(title = "Histogram of Drainage Area")
-
-g <- ggplot(data = survey_final_gis, aes(x = rainfall))
-g + geom_histogram() + labs(title = "Boxplot of Rainfall")
-
-g <- ggplot(data = survey_final_gis, aes(x = SPI_year))
-g + geom_histogram() + labs(title = "Histogram of Average Yearly SPI")
-
-g <- ggplot(data = survey_final_gis, aes(x = vechval))
-g + geom_histogram() + labs(title = "Histogram of Vehicle Value")
-
-g <- ggplot(data = survey_final_gis, aes(x = family))
-g + geom_histogram() + labs(title = "Histogram of Family Size")
-
-g <- ggplot(data = survey_final_gis, aes(x = lotprice))
-g + geom_histogram() + labs(title = "Histogram of Lot Price")
-
-```
-Next, we can look at some box plots
-```{r}
-g <- ggplot(data = survey_final_gis, aes(x = drainage_area_km))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area")
-
-g <- ggplot(data = survey_final_gis, aes(x = rainfall))
-g + geom_boxplot() + labs(title = "Boxplot of Rainfall")
-
-g <- ggplot(data = survey_final_gis, aes(x = SPI_year))
-g + geom_boxplot() + labs(title = "Boxplot of Average Yearly SPI")
-
-g <- ggplot(data = survey_final_gis, aes(x = SPI_dry))
-g + geom_boxplot() + labs(title = "Boxplot of Average in Peak Dry Season")
-
-g <- ggplot(data = survey_final_gis, aes(x = SPI_wet))
-g + geom_boxplot() + labs(title = "Boxplot of Average in Peak Wet Season")
-
-g <- ggplot(data = survey_final_gis, aes(x = vechval))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value")
-
-g <- ggplot(data = survey_final_gis, aes(x = family))
-g + geom_boxplot() + labs(title = "Boxplot of Family Size")
-
-g <- ggplot(data = survey_final_gis, aes(x = lotprice))
-g + geom_boxplot() + labs(title = "Boxplot of Lot Price")
-
-
-```
-
-
-Let's look at boxplots of drainage area and vehicle value (wealth) grouped by cattle.
-
-```{r}
-g <- ggplot(data = survey_final_gis, aes(x = drainage_area_km, y = as.factor(havecattle)))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle") +
-  ylab("Cattle")
-
-g <- ggplot(data = survey_final_gis, aes(x = vechval, y = as.factor(havecattle)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle") +
-  ylab("Cattle")
-
-```
-
-Let's look at a few box plots split by region
-
-```{r}
-
-g <- ggplot(data = survey_final_gis, aes(x = drainage_area_km, y = as.factor(studycode)))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Region") +
-  ylab("Region")
-
-g <- ggplot(data = survey_final_gis, aes(x = SPI_dry, y = as.factor(studycode)))
-g + geom_boxplot() + labs(title = "Boxplot of Dry Season SPI grouped by Region") +
-  ylab("Region")
-
-g <- ggplot(data = survey_final_gis, aes(x = SPI_wet, y = as.factor(studycode)))
-g + geom_boxplot() + labs(title = "Boxplot of Wet Season SPI grouped by Region") +
-  ylab("Region")
-
-g <- ggplot(data = survey_final_gis, aes(x = rainfall_dry, y = as.factor(studycode)))
-g + geom_boxplot() + labs(title = "Boxplot of Dry Season Rainfall grouped by Region") +
-  ylab("Region")
-
-g <- ggplot(data = survey_final_gis, aes(x = rainfall_wet, y = as.factor(studycode)))
-g + geom_boxplot() + labs(title = "Boxplot of Wet Season Rainfall grouped by Region") +
-  ylab("Region")
-
-```
-
-Next lets look at pair plots
-
-```{r}
-pairs_subset <- survey_final_gis %>% select(c(drainage_area_km, SPImax_year, rainfall, studycode, havecattle, vechval, lotprice, incbeef))
-pairs(pairs_subset)
-
-```
-
-Let's look at how many households fall into each region
-
-```{r}
-table(survey_final_gis$studycode)
-```
-
-Let's also look at some basic summary statistics
-
-```{r}
-describe(survey_final_gis[c('drainage_area_km', 'rainfall', 'rainfall_wet', 'rainfall_dry', 'SPI_wet', 'SPI_dry', 'incbeef', 'vechval', 'lotprice', 'family')], fast=TRUE)
-
-```
-
-
-I'm curious about how many farms made multiple adaptations
-
-```{r}
-table(survey_final_gis$cattle_management, survey_final_gis$pasture_management)
-
-table(survey_final_gis$cattle_management, survey_final_gis$forest_conservation)
-
-table(survey_final_gis$cattle_management, survey_final_gis$water_management)
-
-table(survey_final_gis$pasture_management, survey_final_gis$forest_conservation)
-
-table(survey_final_gis$pasture_management, survey_final_gis$water_management)
-
-table(survey_final_gis$forest_conservation, survey_final_gis$water_management)
-```
-
-It looks like the majority of farmers who adapted did more than one thing.
-
-## boxplot supplement
-### Effect of region on drainage area, rainfall and vechval  
-```{r}
-g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(region)))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by region") +
-  xlab("region")
-g <- ggplot(data = survey_final_gis, aes(y = rainfall, x= as.factor(region)))
-g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by region") +
-  xlab("region")
-g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(region)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by region") +
-  xlab("region")
-```
-### Effect of cattle_management on drainage area, rainfall and vechval  
-```{r}
-g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(cattle_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by Cattle_management") +
-  xlab("cattle_management")
-
-g <- ggplot(data = survey_final_gis, aes(y = rainfall, x = as.factor(cattle_management)))
-g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by Cattle_management") +
-  xlab("cattle_management")
-
-g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(cattle_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by Cattle_management") +
-  xlab("cattle_management")
-
-```
-### Effect of pasture_management  on drainage area, rainfall and vechval  
-```{r}
-g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(pasture_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by pasture_management") +
-  xlab("pasture_management")
-
-g <- ggplot(data = survey_final_gis, aes(y = rainfall, x = as.factor(pasture_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Vrainfall grouped by pasture_management") +
-  xlab("pasture_management")
-
-g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(pasture_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by pasture_management") +
-  xlab("pasture_management")
-```
-
-### Effect of forest_conservation on drainage area, rainfall and vechval  
-```{r}
-g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(forest_conservation)))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by forest_conservation") +
-  xlab("forest_conservation")
-
-g <- ggplot(data = survey_final_gis, aes(y = rainfall, x = as.factor(forest_conservation)))
-g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by forest_conservation") +
-  xlab("forest_conservation")
-
-g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(forest_conservation)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by forest_conservation") +
-  xlab("forest_conservation")
-```
-
-### Effect of water_management on drainage area, rainfall and vechval  
-```{r}
-g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(water_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by water_management") +
-  xlab("water_management")
-
-g <- ggplot(data = survey_final_gis, aes(y = rainfall, x = as.factor(water_management)))
-g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by water_management") +
-  xlab("water_management")
-
-g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(water_management)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by water_management") +
-  xlab("water_management")
-```
-### Effect of any_adaptation on drainage area, rainfall and vechval 
-
-```{r}
-g <- ggplot(data = survey_final_gis, aes(y = log(drainage_area_km), x = as.factor(any_adaptation)))
-g + geom_boxplot() + labs(title = "Boxplot of Drainage Area grouped by any_adaptation") +
-  xlab("any_adaptation")
-
-g <- ggplot(data = survey_final_gis, aes(y = rainfall, x = as.factor(any_adaptation)))
-g + geom_boxplot() + labs(title = "Boxplot of rainfall grouped by any_adaptation") +
-  xlab("any_adaptation")
-
-g <- ggplot(data = survey_final_gis, aes(y = vechval, x = as.factor(any_adaptation)))
-g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by any_adaptation") +
-  xlab("any_adaptation")
-```
-
-Boxplotx of milkincome, SPI and rainfall
-```{r}
-milkcinc <- data.frame(survey_final_gis$milkincwet,survey_final_gis$milkincdry)
-boxplot(milkcinc)
-```
-```{r}
-SPI <- data.frame(survey_final_gis$SPI_wet,survey_final_gis$SPI_dry)
-boxplot(SPI)
-```
-```{r}
-rainfall <- data.frame(survey_final_gis$rainfall_wet,survey_final_gis$rainfall_dry)
-boxplot(rainfall)
-```
-# Statisitcal analysis
-## t test for drainage area
-
-```{r}
-quartiles_1 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km, probs=c(.25, .75), na.rm = TRUE)
-IQR_1 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km,na.rm = TRUE)
- 
-Lower_1 <- quartiles_1[1] - 1.5*IQR_1
-Upper_1 <- quartiles_1[2] + 1.5*IQR_1
- 
-data_no_outlier_1<- subset(survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km, survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km> Lower_1 & survey_final_gis[survey_final_gis$any_adaptation==1,]$drainage_area_km< Upper_1)
-
-quartiles_0 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km, probs=c(.25, .75), na.rm = TRUE)
-IQR_0 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km,na.rm = TRUE)
- 
-Lower_0 <- quartiles_0[1] - 1.5*IQR_0
-Upper_0 <- quartiles_0[2] + 1.5*IQR_0
- 
-data_no_outlier_0 <- subset(survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km, survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km> Lower_0 & survey_final_gis[survey_final_gis$any_adaptation==0,]$drainage_area_km< Upper_0)
-
-t.test(data_no_outlier_1 , data_no_outlier_0 ,na.rm=TRUE,var.equal = FALSE)
-```
-
-
-
-## t test for rainfall 
-```{r}
-quartiles_1 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==1,]$rainfall, probs=c(.25, .75), na.rm = TRUE)
-IQR_1 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==1,]$rainfall,na.rm = TRUE)
- 
-Lower_1 <- quartiles_1[1] - 1.5*IQR_1
-Upper_1 <- quartiles_1[2] + 1.5*IQR_1
- 
-data_no_outlier_1<- subset(survey_final_gis[survey_final_gis$any_adaptation==1,]$rainfall, survey_final_gis[survey_final_gis$any_adaptation==1,]$rainfall> Lower_1 & survey_final_gis[survey_final_gis$any_adaptation==1,]$rainfall< Upper_1)
-
-quartiles_0 <- quantile(survey_final_gis[survey_final_gis$any_adaptation==0,]$rainfall, probs=c(.25, .75), na.rm = TRUE)
-IQR_0 <- IQR(survey_final_gis[survey_final_gis$any_adaptation==0,]$rainfall,na.rm = TRUE)
- 
-Lower_0 <- quartiles_0[1] - 1.5*IQR_0
-Upper_0 <- quartiles_0[2] + 1.5*IQR_0
- 
-data_no_outlier_0 <- subset(survey_final_gis[survey_final_gis$any_adaptation==0,]$rainfall, survey_final_gis[survey_final_gis$any_adaptation==0,]$rainfall> Lower_0 & survey_final_gis[survey_final_gis$any_adaptation==0,]$rainfall< Upper_0)
- 
-t.test(data_no_outlier_1 , data_no_outlier_0 ,na.rm=TRUE,var.equal = FALSE)
-```
-## t test for milkincome at different seasons  
-We would like to see if there is any difference of milkincome between dry and wet season. The null hypothesis is mean value of milkincome is the same for dry and wet season. H0: $\mu_{mlkinc,dry}=\mu_{mlkinc,wet)}$ vs Ha: $\mu_{mlkinc,dry} \ne \mu_{mlkinc,wet)}$  
-
-```{r}
-t.test(survey_final_gis_clean$milkincwet,survey_final_gis_clean$milkincdry,na.rm=TRUE,var.equal = FALSE)
-```
-As p is much less than 0.05, we are confident the mean value of milkincome of wetseason is significant higher than dry season.  
-
-## t-test for rainfall at different seasons
-```{r}
-t.test(survey_final_gis_clean$rainfall_wet,survey_final_gis_clean$rainfall_dry,na.rm=TRUE,var.equal = FALSE)
-```
-
-## t-test for SPI at different seasons
-We would like to see if there is any difference in SPI between dry and wet season. The null hypothesis is mean value of SPI is the same for dry and wet season. H0: $\mu_{SPI,dry}=\mu_{SPI,wet)}$ vs Ha: $\mu_{SPI,dry} \ne \mu_{SPI,wet)}$ 
-```{r}
-t.test(survey_final_gis_clean$SPI_wet,survey_final_gis_clean$SPI_dry,na.rm=TRUE,var.equal = FALSE)
-```
-Average SPI and average monthly SPI in the peak of wet  season is significantly higher than those of dry season.   
-
-## Anova analysis
-We hypothesize drainage area of three regions may be different. We propose null hypothesis is drainage area means of three regions are the same. The alternativae hypothesis is drainage area means of three regions are different.  
-
-### effect of region on drainage_area_km
-```{r}
-survey_final_gis$studycode<- factor(survey_final_gis$region)
-aov_drainage <- aov(drainage_area_km ~ region, data=survey_final_gis)
-
-summary(aov_drainage)
-TukeyHSD(aov_drainage, conf.level=.95)
-```
-As p-value of F test is extremely small, we are confident that the drainage means of three regions are different. We further compared drainage means of three regions and found region "Rolim de Moura" has the highest drainage area, OPO has the smallest.  
-
-### effect of region on income from beef
-We then wants to see if there is difference in income from beef at different regions.
-```{r}
-aov_incbeef <- aov(incbeef ~ region, data=survey_final_gis )
-summary(aov_incbeef)
-TukeyHSD(aov_incbeef, conf.level=.95)
-```
-As p value is larger than 0.05, we can not reject our hypothesis that the means of income from beef at different regions are the same.  
-
-
-### effect of region on rainfall 
-
-```{r}
-aov_rainfall <- aov(rainfall~ region, data=survey_final_gis )
-summary(aov_rainfall)
-TukeyHSD(aov_rainfall, conf.level=.95)
-```
-As p-value for F test of AONVA is very small, rainfall in three regions is not the same. It can be seen the rainfall in region "Rolim de Moura" is less than that in the other two.  
-
-
-### effect of region on wealth 
-```{r}
-aov_vechval <- aov(vechval~ region, data=survey_final_gis_clean)
-summary(aov_vechval)
-TukeyHSD(aov_vechval, conf.level=.95)
-
-```
-The family wealth is significant different in three regions. The wealth in region "3"Rolim de Moura" is the largest.  
-
-### Effect of region on adapatation method
-Will need to do this for each method, since methods can overlap
-
-First - cattle management
-
-```{r}
-# Need to change studycode into a factor
-survey_final_gis$studycode <- as.factor(survey_final_gis$studycode)
-aov_cattle_management <- aov(cattle_management ~ studycode, data = survey_final_gis)
-summary(aov_cattle_management)
-```
-Cattle management appears to be the same across all three regions based on the p-value
-
-Next - water management
-```{r}
-aov_water_management <- aov(water_management ~ studycode, data = survey_final_gis)
-summary(aov_water_management)
-TukeyHSD(aov_water_management, conf.level=.95)
-```
-Based on the p-value, we know at least two regions are signficantly different
-Using the results of Tukey's HSD, we can see that regions 1 and 2 (Ariquemes and OPO)
-are significantly different when it comes to water management
-
-Next - pasture management
-```{r}
-aov_pasture_management <- aov(pasture_management ~ studycode, data = survey_final_gis)
-summary(aov_pasture_management)
-TukeyHSD(aov_pasture_management, conf.level=.95)
-```
-From the result of the ANOVA, we can see there is a difference between at least one region.
-Looking at the result of Tukey, we can see the difference is significant between regions 1 and 2, and regions 2 and 3
-
-Next - forest conservation
-```{r}
-aov_forest_conservation <- aov(forest_conservation ~ studycode, data = survey_final_gis)
-summary(aov_forest_conservation)
-#TukeyHSD(aov_pasture_management, conf.level=.95)
-```
-There is not a significant difference amongst regions due to forest conservation
-
-### Effect of wealth on number of adaptations
-```{r}
-survey_final_gis <- survey_final_gis %>% mutate(adaptation_count = cattle_management + pasture_management + water_management + forest_conservation)
-aov_vechval_adaptation_count <- aov(vechval ~ adaptation_count, data = survey_final_gis)
-summary(aov_vechval_adaptation_count)
-```
-
-```{r}
-fit_lr <- lm(adaptation_count ~ vechval, data = survey_final_gis)
-summary(fit_lr)
-```
-
-
-# Modelling
-
-## Multiple Logistic Regression Model
-First to create a few different MLRs to see what the relationship is between
-adaptation methods and water availability.
-
-### Model 1
-In this model, I will select the largest amount of variables. The dependent variable will be the general adaptation variable. The independent variables will be:
-  - Drainage area
-  - Lot size (can't find in data - ask Mariana)
-  - Soil type (100% missing - so maybe not)
-  - Vehicle value
-  - SPI - using the maximum in the year
-  - Risk
-  - Lot value
-
-(This model did not converge)
-  
-  
-### Model 2
-Trying with only drainage area to see if there's a relationship since previous model did not converge
-```{r}
-fit_2 <- glm(any_adaptation ~ drainage_area_km, family = binomial,data = survey_final_gis)
-summary(fit_2)
-```
-The drainage area is not a statistically significant parameter in this case. However, there are outliers in the data that might be affecting this. Let's investigate.
-
-```{r}
-plot(fit_2, which = 4)
-```
-
-Fitting the model without observation 206
-```{r}
-survey_final_gis_no <- survey_final_gis[-c(206),]
-fit_3 <- glm(any_adaptation ~ drainage_area_km, family = binomial,data = survey_final_gis_no)
-summary(fit_3)
-```
-```{r}
-plot(fit_3, which = 4)
-```
-Now to check Log Reg assumptions
-```{r}
-probabilities <- predict(fit_3, type = "response")
-# Select only numeric predictors
-mydata <- survey_final_gis_no %>%
-  dplyr::select_if(is.numeric) %>%
-  select(drainage_area_km)
-predictors <- colnames(mydata)
-# Bind the logit and tidying the data for plot
-mydata <- mydata %>%
-  mutate(logit = log(probabilities/(1-probabilities))) %>%
-  gather(key = "predictors", value = "predictor.value", -logit)
-```
-
-```{r}
-ggplot(mydata, aes(logit, predictor.value))+
-  geom_point(size = 0.5, alpha = 0.5) +
-  geom_smooth(method = "loess") + 
-  theme_bw() + 
-  facet_wrap(~predictors, scales = "free_y")
-```
-
-
-### Model 3 - Transforming Drainage Area
-Let's look at the distribution of drainage area to see if we should transform it
-
-```{r}
-g <- ggplot(data = survey_final_gis_no, aes(x = log(drainage_area_km)))
-g + geom_histogram() + labs(title = "Histogram of log(Drainage Area)")
-```
-
-Now to create the model:
-
-```{r}
-fit_transform <- glm(any_adaptation ~ log(drainage_area_km), family = binomial,data = survey_final_gis)
-summary(fit_transform)
-```
-
-Let's plot it to get a visual to help wrap our heads around this model
-
-```{r}
-Predicted_data <- data.frame(drainage_area_km=seq(
-  min(survey_final_gis$drainage_area_km), max(survey_final_gis_wealth$drainage_area_km),len=500))
- 
-# Fill predicted values using regression model
-Predicted_data$any_adaptation = predict(
-  fit_transform, Predicted_data, type="response")
- 
-# Plot Predicted data and original data points
-plot(any_adaptation ~ drainage_area_km, data=survey_final_gis_wealth, log="x")
-lines(any_adaptation ~ drainage_area_km, Predicted_data, lwd=2, col="orange")
-title(main = "Adaptation Probability vs Drainage Area")
-```
-
-### Model 4
-For this model, we will take Dr. Harris's suggestion of an indicator variable for
-the large drainage area lots (I believe is what he meant)
-
-First going to see the fit with outliers chopped off
-
-```{r}
-survey_final_gis_filtered <- survey_final_gis %>% filter(drainage_area_km < 500)
-fit_4 <- glm(any_adaptation ~ drainage_area_km, data = survey_final_gis_filtered, family = binomial)
-summary(fit_4)
-```
-
-
-### model 5
-
-```{r}
- survey_final_gis2<- drop_na(survey_final_gis,SPI_year)
-survey_final_gis2$rainfall2 <- scale(survey_final_gis2$rainfall,center=TRUE,scale=T)
-survey_final_gis2$drainage_area_km2 <-  scale(survey_final_gis2$drainage_area_km,center=TRUE,scale=T)
-fit_3 <- glm(any_adaptation ~ log (drainage_area_km) + log(rainfall), family = binomial,data = survey_final_gis2)
-summary(fit_3)
-```
-
-
-Now look at individual adaptation variables
-```{r}
-fit_cattle <- glm(cattle_management ~ drainage_area_km, family = binomial,data = survey_final_gis)
-summary(fit_cattle)
-
-fit_cattle_log = glm(cattle_management ~ log(drainage_area_km), family = binomial,data = survey_final_gis)
-summary(fit_cattle_log)
-```
-Saw significance when using log(drainage area)
-
-Next lets look at pasture management
-```{r}
-fit_pasture <- glm(pasture_management ~ drainage_area_km, family = binomial,data = survey_final_gis)
-summary(fit_pasture)
-
-fit_pasture_log <- glm(pasture_management ~ log(drainage_area_km), family = binomial,data = survey_final_gis)
-summary(fit_pasture_log)
-```
-Similar results, but with a super low p for log(drainage area)
-
-Next lets look at forest conservation
-```{r}
-fit_forest <- glm(forest_conservation ~ drainage_area_km, family = binomial,data = survey_final_gis)
-summary(fit_forest)
-
-fit_forest_log <- glm(forest_conservation ~ log(drainage_area_km), family = binomial,data = survey_final_gis)
-summary(fit_forest_log)
-```
-
-Log(drainage area) is highly significant again
-
-Let's now look at water management
-```{r}
-fit_water <- glm(water_management ~ drainage_area_km, family = binomial,data = survey_final_gis)
-summary(fit_water)
-
-fit_water_log <- glm(water_management ~ log(drainage_area_km), family = binomial,data = survey_final_gis)
-summary(fit_water_log)
-```
-
-Similar results again. Log(drainage area) is significant for each of the adaptation categories.
-
-Let's make some plots to visualize them, starting with cattle management
-```{r}
-Predicted_data <- data.frame(drainage_area_km=seq(
-  min(survey_final_gis$drainage_area_km), max(survey_final_gis_wealth$drainage_area_km),len=500))
- 
-# Fill predicted values using regression model
-Predicted_data$cattle_management = predict(
-  fit_cattle_log, Predicted_data, type="response")
- 
-# Plot Predicted data and original data points
-plot(cattle_management ~ drainage_area_km, data=survey_final_gis_wealth, log="x")
-lines(cattle_management ~ drainage_area_km, Predicted_data, lwd=2, col="green")
-title(main = "Cattle Management Probability vs Drainage Area")
-```
-
-Now let's look at water management
-
-```{r}
-Predicted_data <- data.frame(drainage_area_km=seq(
-  min(survey_final_gis$drainage_area_km), max(survey_final_gis_wealth$drainage_area_km),len=500))
- 
-# Fill predicted values using regression model
-Predicted_data$water_management = predict(
-  fit_water_log, Predicted_data, type="response")
- 
-# Plot Predicted data and original data points
-plot(water_management ~ drainage_area_km, data=survey_final_gis_wealth, log="x")
-lines(water_management ~ drainage_area_km, Predicted_data, lwd=2, col="purple")
-title(main = "Water Management Probability vs Drainage Area")
-```
-
-Next, let's look at pasture management
-
-```{r}
-Predicted_data <- data.frame(drainage_area_km=seq(
-  min(survey_final_gis$drainage_area_km), max(survey_final_gis_wealth$drainage_area_km),len=500))
- 
-# Fill predicted values using regression model
-Predicted_data$pasture_management = predict(
-  fit_pasture_log, Predicted_data, type="response")
- 
-# Plot Predicted data and original data points
-plot(pasture_management ~ drainage_area_km, data=survey_final_gis_wealth, log="x")
-lines(pasture_management ~ drainage_area_km, Predicted_data, lwd=2, col="blue")
-title(main = "Pasture Management Probability vs Drainage Area")
-```
-
-And finally, forest conservation
-
-```{r}
-Predicted_data <- data.frame(drainage_area_km=seq(
-  min(survey_final_gis$drainage_area_km), max(survey_final_gis_wealth$drainage_area_km),len=500))
- 
-# Fill predicted values using regression model
-Predicted_data$forest_conservation = predict(
-  fit_forest_log, Predicted_data, type="response")
- 
-# Plot Predicted data and original data points
-plot(forest_conservation~ drainage_area_km, data=survey_final_gis_wealth, log="x")
-lines(forest_conservation ~ drainage_area_km, Predicted_data, lwd=2, col="red")
-title(main = "Forest Conservation Probability vs Drainage Area")
-```
-
-
-I'm curious about how many farms made multiple adaptations
-```{r}
-table(survey_final_gis$cattle_management, survey_final_gis$pasture_management)
-
-table(survey_final_gis$cattle_management, survey_final_gis$forest_conservation)
-
-table(survey_final_gis$cattle_management, survey_final_gis$water_management)
-
-table(survey_final_gis$pasture_management, survey_final_gis$forest_conservation)
-
-table(survey_final_gis$pasture_management, survey_final_gis$water_management)
-
-table(survey_final_gis$forest_conservation, survey_final_gis$water_management)
-```
-
-It looks like the majority of farmers who adapted did more than one thing.
-
-
-Modeling for the wealth
-```{r}
-# remove data of vechval with "NA"
-survey_final_gis_wealth <- survey_final_gis %>% filter(!is.na(survey_final_gis$vechval))
-fit_wealth_water <- glm(water_management~  vechval , family = binomial, data = survey_final_gis_wealth )
-fit_wealth_cattle  <- glm(cattle_management~  vechval , family = binomial, data = survey_final_gis_wealth )
-fit_wealth_pasture  <- glm(pasture_management~  vechval , family = binomial, data = survey_final_gis_wealth )
-fit_wealth_forest <- glm(forest_conservation~  vechval , family = binomial, data = survey_final_gis_wealth )
-#fit_wealth_any_adaptation <- glm(any_adaptation~  vechval , family = binomial, data = survey_final_gis_wealth )
-summary(fit_wealth_water)
-summary(fit_wealth_cattle)
-summary(fit_wealth_pasture)
-summary(fit_wealth_forest)
-#summary(fit_wealth_any_adaptation )
-```
-
-Now, we'll plot these models to get a visual on what they mean
-
-First with cattle management
-```{r}
-Predicted_data <- data.frame(vechval=seq(
-  min(survey_final_gis_wealth$vechval), max(survey_final_gis_wealth$vechval),len=500))
- 
-# Fill predicted values using regression model
-Predicted_data$cattle_management = predict(
-  fit_wealth_cattle, Predicted_data, type="response")
- 
-# Plot Predicted data and original data points
-plot(cattle_management ~ vechval, data=survey_final_gis_wealth)
-lines(cattle_management ~ vechval, Predicted_data, lwd=2, col="green")
-title(main = "Cattle Management Probability vs Wealth")
-```
-
-Now water management
-```{r}
-Predicted_data <- data.frame(vechval=seq(
-  min(survey_final_gis_wealth$vechval), max(survey_final_gis_wealth$vechval),len=500))
- 
-# Fill predicted values using regression model
-Predicted_data$water_management = predict(
-  fit_wealth_water, Predicted_data, type="response")
- 
-# Plot Predicted data and original data points
-plot(water_management ~ vechval, data=survey_final_gis_wealth)
-lines(water_management ~ vechval, Predicted_data, lwd=2, col="purple")
-title(main = "Water Management Probability vs Wealth")
-```
-
-Now pasture management
-
-```{r}
-Predicted_data <- data.frame(vechval=seq(
-  min(survey_final_gis_wealth$vechval), max(survey_final_gis_wealth$vechval),len=500))
- 
-# Fill predicted values using regression model
-Predicted_data$pasture_management = predict(
-  fit_wealth_pasture, Predicted_data, type="response")
- 
-# Plot Predicted data and original data points
-plot(pasture_management ~ vechval, data=survey_final_gis_wealth)
-lines(pasture_management ~ vechval, Predicted_data, lwd=2, col="blue")
-title(main = "Pasture Management Probability vs Wealth")
-```
-
-and finally forest conservation
-
-```{r}
-Predicted_data <- data.frame(vechval=seq(
-  min(survey_final_gis_wealth$vechval), max(survey_final_gis_wealth$vechval),len=500))
- 
-# Fill predicted values using regression model
-Predicted_data$forest_conservation = predict(
-  fit_wealth_forest, Predicted_data, type="response")
- 
-# Plot Predicted data and original data points
-plot(forest_conservation ~ vechval, data=survey_final_gis_wealth)
-lines(forest_conservation ~ vechval, Predicted_data, lwd=2, col="red")
-title(main = "Forest Conservation Probability vs Wealth")
-```
-
-Look at models with vehicle value and drainage area. Drainage area was not significant in any models, but log(drainage area) is for some.
-```{r}
-survey_final_gis_wealth <- survey_final_gis %>% filter(!is.na(survey_final_gis$vechval))
-fit_wealth_ldrain_water <- glm(water_management~  vechval + log(drainage_area_km), family = binomial, data = survey_final_gis_wealth )
-fit_wealth_ldrain_cattle  <- glm(cattle_management~  vechval + log(drainage_area_km) , family = binomial, data = survey_final_gis_wealth )
-fit_wealth_ldrain_pasture  <- glm(pasture_management~  vechval + log(drainage_area_km), family = binomial, data = survey_final_gis_wealth )
-fit_wealth_ldrain_forest <- glm(forest_conservation~  vechval + log(drainage_area_km), family = binomial, data = survey_final_gis_wealth )
-#fit_wealth_drainn_any_adaptation <- glm(any_adaptation~  vechval + log(drainage_area_km), family = binomial, data = survey_final_gis_wealth )
-summary(fit_wealth_ldrain_water)
-summary(fit_wealth_ldrain_cattle)
-summary(fit_wealth_ldrain_pasture)
-summary(fit_wealth_ldrain_forest)
-#summary(fit_wealth_drain_any_adaptation )
-```
-The model for any adaptation did not converge, but all of the others did. Vehicle value was still significant for all of the adaptation measures. Log(drainage area) was not significant for water or cattle management when vehicle value is included, but it is for pasture management and forest conservation. For forest conservation, drainage area has a much smaller p value than vehicle value.
-
-Try using draianage area with the tail chopped off instead of log transform
-```{r}
-survey_final_gis_wealth_filtered <- survey_final_gis_wealth %>% filter(drainage_area_km < 500)
-fit_wealth_drain_water <- glm(water_management~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
-fit_wealth_drain_cattle  <- glm(cattle_management~  vechval + drainage_area_km , family = binomial, data = survey_final_gis_wealth_filtered )
-fit_wealth_drain_pasture  <- glm(pasture_management~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
-fit_wealth_drain_forest <- glm(forest_conservation~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
-#fit_wealth_drainn_any_adaptation <- glm(any_adaptation~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
-summary(fit_wealth_drain_water)
-summary(fit_wealth_drain_cattle)
-summary(fit_wealth_drain_pasture)
-summary(fit_wealth_drain_forest) 
-#summary(fit_wealth_drain_any_adaptation )
-
-```
-
-With the drainage area outliers removed, drainage area is significant for forest conservation but none of the others.  
-```{r}
-rainfall_group<- cut(survey_final_gis_wealth_filtered$rainfall , c(0,1950,2300), label=c("low","high"))
-rainfall_group <-factor(rainfall_group)
-survey_final_gis_wealth_filtered$studycode <-factor(survey_final_gis_wealth_filtered$studycode)
-fit_wealth_drain_water <- glm(water_management~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
-fit_wealth_drain_cattle  <- glm(cattle_management~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
-fit_wealth_drain_pasture  <- glm(pasture_management~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
-fit_wealth_drain_forest <- glm(forest_conservation~  vechval + log(drainage_area_km) + log(rainfall_year) + studycode, family = binomial, data = survey_final_gis_wealth_filtered )
-#fit_wealth_drainn_any_adaptation <- glm(any_adaptation~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
-summary(fit_wealth_drain_water)
-summary(fit_wealth_drain_cattle)
-summary(fit_wealth_drain_pasture)
-summary(fit_wealth_drain_forest)
-#summary(fit_wealth_drain_any_adaptation )
-```
-
-Since we've seen that wealth is so important for adaptation, but drainage area importance 
-decreases for wealth, let's see if other water availability proxies are signficant for the
-individual adaptations
-
-```{r}
-fit_cattle_full <- glm(cattle_management ~ SPImax_year + vechval, family = binomial,data = survey_final_gis)
-summary(fit_cattle)
-```
-
-```{r}
-fit_water_full <- glm(water_management ~ SPImax_year + vechval, family = binomial,data = survey_final_gis)
-summary(fit_water_full)
-```
-
-```{r}
-fit_pasture_full <- glm(pasture_management ~ rainfall+ vechval, family = binomial,data = survey_final_gis)
-summary(fit_pasture_full)
->>>>>>> d8542f89fb22d103c5ea36764cccba1ebf99af3c
 ```
