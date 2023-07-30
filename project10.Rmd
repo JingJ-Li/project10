@@ -276,7 +276,7 @@ g <- ggplot(data = survey_final_gis_clean, aes( x = as.factor(region),y = vechva
 g + geom_boxplot() + labs(title = "Boxplot of Vehicle Value grouped by region") +
   xlab("region")
 ```
-Above figure shows drainage area and vechval is marginly different in three regions, while the rainfall on region “Rolim” is much less than the other two. This indicates there is interaction between drainage area and rainfall and we need to be cautious during the modeling using these two variables. On the other hand, some outliers exisit in the data. It is necessary to remove outliers during statistical analysis.  
+Above figure shows drainage area and vechval is marginly different in three regions, while the rainfall on region “Rolim” is much less than the other two. This indicates there is interaction between drainage area and rainfall and we need to be cautious during the modeling using these two variables. On the other hand, some outliers exist in the data. It is necessary to remove outliers during statistical analysis.  
 
 Next, We can designate binary adaptation measures as factors and compare numeric variables with and without adaptation measures and estimate the relationship between them. We are going to investigate all four adaptation measures at first and then the combined one, any_adaptation. 
 
@@ -553,7 +553,7 @@ Next - forest conservation
 ```{r}
 aov_forest_conservation <- aov(forest_conservation ~ studycode, data = survey_final_gis)
 summary(aov_forest_conservation)
-#TukeyHSD(aov_pasture_management, conf.level=.95)
+TukeyHSD(aov_pasture_management, conf.level=.95)
 ```
 There is not a significant difference amongst regions due to forest conservation
 
@@ -651,6 +651,8 @@ summary(fit_transform)
 Let's plot it to get a visual to help wrap our heads around this model
 
 ```{r}
+# remove data of vechval with "NA"
+survey_final_gis_wealth <- survey_final_gis %>% filter(!is.na(survey_final_gis$vechval))
 Predicted_data <- data.frame(drainage_area_km=seq(
   min(survey_final_gis$drainage_area_km), max(survey_final_gis_wealth$drainage_area_km),len=500))
  
@@ -839,8 +841,7 @@ We see significance for both the drainage area and the log(drainage area). Both 
 
 Now let's look at logistic regression with wealth.
 ```{r}
-# remove data of vechval with "NA"
-survey_final_gis_wealth <- survey_final_gis %>% filter(!is.na(survey_final_gis$vechval))
+
 fit_wealth_water <- glm(water_management~  vechval , family = binomial, data = survey_final_gis_wealth )
 fit_wealth_cattle  <- glm(cattle_management~  vechval , family = binomial, data = survey_final_gis_wealth )
 fit_wealth_pasture  <- glm(pasture_management~  vechval , family = binomial, data = survey_final_gis_wealth )
@@ -871,7 +872,7 @@ title(main = "Cattle Management Probability vs Wealth")
 ```
 
 Now water management
-```{r}
+```{r, eval=FALSE}
 Predicted_data <- data.frame(vechval=seq(
   min(survey_final_gis_wealth$vechval), max(survey_final_gis_wealth$vechval),len=500))
  
@@ -887,7 +888,7 @@ title(main = "Water Management Probability vs Wealth")
 
 Now pasture management
 
-```{r}
+```{r, eval=FALSE}
 Predicted_data <- data.frame(vechval=seq(
   min(survey_final_gis_wealth$vechval), max(survey_final_gis_wealth$vechval),len=500))
  
@@ -903,7 +904,7 @@ title(main = "Pasture Management Probability vs Wealth")
 
 and finally forest conservation
 
-```{r}
+```{r, eval=FALSE}
 Predicted_data <- data.frame(vechval=seq(
   min(survey_final_gis_wealth$vechval), max(survey_final_gis_wealth$vechval),len=500))
  
@@ -920,7 +921,7 @@ title(main = "Forest Conservation Probability vs Wealth")
 
 
 Look at models with vehicle value and drainage area. Drainage area was not significant in any models, but log(drainage area) is for some.
-```{r}
+```{r,eval=FALSE}
 survey_final_gis_wealth <- survey_final_gis %>% filter(!is.na(survey_final_gis$vechval))
 fit_wealth_ldrain_water <- glm(water_management~  vechval + log(drainage_area_km), family = binomial, data = survey_final_gis_wealth )
 fit_wealth_ldrain_cattle  <- glm(cattle_management~  vechval + log(drainage_area_km) , family = binomial, data = survey_final_gis_wealth )
@@ -936,7 +937,7 @@ summary(fit_wealth_ldrain_forest)
 The model for any adaptation did not converge, but all of the others did. Vehicle value was still significant for all of the adaptation measures. Log(drainage area) was not significant for water or cattle management when vehicle value is included, but it is for pasture management and forest conservation. For forest conservation, drainage area has a much smaller p value than vehicle value.
 
 Try using draianage area with the tail chopped off instead of log transform
-```{r}
+```{r,eval=FALSE}
 survey_final_gis_wealth_filtered <- survey_final_gis_wealth %>% filter(drainage_area_km < 500)
 fit_wealth_drain_water <- glm(water_management~  vechval + drainage_area_km, family = binomial, data = survey_final_gis_wealth_filtered )
 fit_wealth_drain_cattle  <- glm(cattle_management~  vechval + drainage_area_km , family = binomial, data = survey_final_gis_wealth_filtered )
@@ -952,7 +953,7 @@ summary(fit_wealth_drain_forest)
 ```
 
 With the drainage area outliers removed, drainage area is significant for forest conservation but none of the others.  
-```{r}
+```{r,eval=FALSE}
 rainfall_group<- cut(survey_final_gis_wealth_filtered$rainfall , c(0,1950,2300), label=c("low","high"))
 rainfall_group <-factor(rainfall_group)
 survey_final_gis_wealth_filtered$studycode <-factor(survey_final_gis_wealth_filtered$studycode)
